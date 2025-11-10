@@ -1,0 +1,60 @@
+name: Deploy DataControllerApi
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - develop
+      - release/*
+      # - main
+    paths:
+      - 'themis2-app-platform/data-controller-api-for-documentdb/**'
+      - '.github/workflows/application-build-data-controller-api.yml'
+      - '.github/workflows/container-deploy.yml'
+      - '.github/workflows/determine-environment.yml'
+      - '.github/actions/container-build/action.yml'
+      - '.github/actions/pod-restart/action.yml'
+  workflow_call:
+    inputs:
+      GITHUB_ENV:
+        required: true
+        type: string
+
+jobs:
+  determine-environment:
+    uses: ./.github/workflows/determine-environment.yml
+
+  get-env-vars:
+    needs: determine-environment
+    environment: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    outputs:
+      ENV: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}
+    steps:
+      - name: Get environment variables
+        run: echo "Environment variables retrieved"
+      - name: Log environment variables
+        run: |
+          echo "ENV: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}"
+          echo "AWS_REGION: ${{ vars.AWS_REGION }}"
+          echo "AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}"
+
+  DataControllerApi:
+    needs: [determine-environment, get-env-vars]
+    uses: ./.github/workflows/container-deploy.yml
+    with:
+      APPLICATION_TYPE: platform
+      ENV: ${{ needs.get-env-vars.outputs.ENV }}
+      AWS_REGION: ${{ needs.get-env-vars.outputs.AWS_REGION }}
+      AWS_ECR_DOMAIN: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}.dkr.ecr.${{ needs.get-env-vars.outputs.AWS_REGION }}.amazonaws.com
+      AWS_ACCOUNT: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}
+      ecr-repository: themis2/docdb-data-controller-api
+      dockerfile-path: ./themis2-app-platform/data-controller-api-for-documentdb/Dockerfile
+      context: ./themis2-app-platform
+      clusters: themis2-${{ needs.get-env-vars.outputs.ENV }}-eks-cp-infra
+      restart-workload: docdb-data-controller-api

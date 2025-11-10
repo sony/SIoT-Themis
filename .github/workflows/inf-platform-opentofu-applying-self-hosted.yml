@@ -1,0 +1,142 @@
+name: Opentofu applying (self hosted)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+      module-name:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+      artifact-path:
+        required: false
+        type: string
+      artifact-name:
+        required: false
+        type: string
+      health-check-command:
+        required: false
+        type: string
+      eks-resource-to-restart:
+        required: false
+        type: string
+      eks-resource-namespace:
+        required: false
+        type: string
+        default: default
+      pre-setup-command:
+        required: false
+        type: string
+      IOTAGENT_CONSOLE_KEYCLOAK_CLIENT_ID:
+        required: false
+        type: string
+      IOTAGENT_CONSOLE_KEYCLOAK_CLIENT_SECRET:
+        required: false
+        type: string
+      PLATFORM_CONSOLE_KEYCLOAK_CLIENT_ID:
+        required: false
+        type: string
+      PLATFORM_CONSOLE_KEYCLOAK_CLIENT_SECRET:
+        required: false
+        type: string
+      
+env:
+  TF_VAR_aws_account_id: ${{ vars.AWS_ACCOUNT }}
+  TF_VAR_env: ${{ inputs.target_env }}
+  TF_VAR_use_region: ${{ vars.AWS_REGION }}
+  TF_VAR_iotagent_console_keycloak_client_id: ${{ inputs.IOTAGENT_CONSOLE_KEYCLOAK_CLIENT_ID || secrets.IOTAGENT_CONSOLE_KEYCLOAK_CLIENT_ID || 'dummy' }}
+  TF_VAR_iotagent_console_keycloak_client_secret: ${{ inputs.IOTAGENT_CONSOLE_KEYCLOAK_CLIENT_SECRET || secrets.IOTAGENT_CONSOLE_KEYCLOAK_CLIENT_SECRET || 'dummy' }}
+  TF_VAR_platform_console_keycloak_client_id: ${{ inputs.PLATFORM_CONSOLE_KEYCLOAK_CLIENT_ID || secrets.PLATFORM_CONSOLE_KEYCLOAK_CLIENT_ID || 'dummy' }}
+  TF_VAR_platform_console_keycloak_client_secret: ${{ inputs.PLATFORM_CONSOLE_KEYCLOAK_CLIENT_SECRET || secrets.PLATFORM_CONSOLE_KEYCLOAK_CLIENT_SECRET || 'dummy' }}
+  TF_VAR_grafana_platform_console_api_key_secret: dummy
+  TF_VAR_bacth_analyzer_data_controller_api_key: dummy
+  TF_VAR_sample_tracker_backend_api_key: dummy
+  TF_VAR_orion_docdb_master_password: ${{ secrets.ORION_DOCDB_MASTER_PASSWORD }}
+  TF_VAR_cygnus_docdb_master_password: ${{ secrets.CYGNUS_DOCDB_MASTER_PASSWORD }}
+  TF_VAR_aurora_master_password: ${{ secrets.AURORA_MASTER_PASSWORD }}
+  TF_VAR_data_filtering_api_backend_api_key: dummy
+  PGPASSWORD: ${{ secrets.AURORA_MASTER_PASSWORD }}
+  TF_VAR_mongo_ssl_truststore_password: ${{ secrets.MONGO_SSL_TRUSTSTORE_PASSWORD }}
+  TF_VAR_eltres_agent_topics: ${{ vars.ELTRES_AGENT_TOPICS }}
+  TF_VAR_availability_zones: ${{ vars.AVAILABILITY_ZONES }}
+  TF_VAR_iac_allow_cidr_blocks: ${{ vars.IAC_ALLOW_CIDR_BLOCKS }}
+  TF_VAR_eks_admin_user_arns: ${{ vars.EKS_ADMIN_USER_ARNS }}
+  TF_VAR_keycloak_setting_admin_username: ${{ vars.KEYCLOAK_ADMIN_USERNAME }}
+  TF_VAR_keycloak_setting_admin_password: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+  TF_VAR_keycloak_setting_new_realm: ${{ vars.NEW_REALM }}
+  TF_VAR_keycloak_setting_user_username: ${{ vars.KEYCLOAK_USER_USERNAME }}
+  TF_VAR_keycloak_setting_user_password: ${{ secrets.KEYCLOAK_USER_PASSWORD }}
+  TF_VAR_eks_node_init_script: ${{ vars.CONTENT || '' }}
+  TF_VAR_kube_proxy_version: ${{ vars.KUBE_PROXY_VERSION }}
+  TF_VAR_vpc_cni_version: ${{ vars.VPC_CNI_VERSION }}
+  TF_VAR_coredns_version: ${{ vars.COREDNS_VERSION }}
+  TF_VAR_cluster_autoscaler_version: ${{ vars.CLUSTER_AUTOSCALER_VERSION }}
+  TF_VAR_allowed_cidr_blocks: ${{ vars.ALLOWED_CIDR_BLOCKS }}
+  TF_VAR_servicer_console_keycloak_client_secret: ${{ secrets.SERVICER_CONSOLE_KEYCLOAK_CLIENT_SECRET }}
+  TF_VAR_grafana_domain_regex: ${{ vars.GRAFANA_DOMAIN_REGEX }}
+  TF_VAR_github_pat: ${{ secrets.GH_PAT_ADMIN }}
+  TF_VAR_public_key_content: ${{ vars.PLATFORM_EC2_KEY_PAIR_CONTENT }}
+
+jobs:
+  Applying-module:
+    if: ${{ inputs.module-name != 'VPC' && inputs.module-name != 'EC2' || inputs.module-name == 'ACM' }}
+    name: Applying module ${{ inputs.module-name }}
+    runs-on: ec2-iac-platform-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    permissions:
+      id-token: write # OIDC 認証を使用するために必要
+      contents: read
+      actions: write
+    steps:
+      # AWS 認証を OIDC で行う
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+      # リポジトリのチェックアウト
+      - name: Repository checkout
+        uses: actions/checkout@v4
+      - name: Pre-setup
+        if: inputs.pre-setup-command != ''
+        run: |
+          ${{ inputs.pre-setup-command }}
+
+      - name: Applying module
+        uses: ./.github/actions/opentofu-applying
+        with:
+          module-name: ${{ inputs.module-name }}
+          target: ${{ inputs.target }}
+          working-dir: themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+          aws-region: ${{ vars.AWS_REGION }}
+          backend-bucket-name: themis2-${{ inputs.target_env }}-s3-tfstate
+      - name: "Upload Artifact"
+        if: inputs.artifact-path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.module-name }}-${{ inputs.artifact-name }}
+          path: |
+            ${{ inputs.artifact-path }}
+          if-no-files-found: error
+      - name: Health Check
+        if: inputs.health-check-command != ''
+        run: |
+          ${{ inputs.health-check-command }}
+      - name: Kubectl rollout restarting
+        if: inputs.eks-resource-to-restart != ''
+        run: |
+          cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+          EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+          echo "${{ inputs.eks-resource-to-restart }}" | while IFS= read -r RESOURCE; do
+            [ -z "$RESOURCE" ] && continue
+            echo "Restarting $RESOURCE"
+            kubectl rollout restart "$RESOURCE" -n "${{ inputs.eks-resource-namespace }}"
+            echo "Wating..."
+            kubectl rollout status "$RESOURCE" -n "${{ inputs.eks-resource-namespace }}" --timeout 120s || exit 1
+          done
+          
+          

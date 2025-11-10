@@ -1,0 +1,46 @@
+{
+  "name": "visualize-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run websocket-server & next dev",
+    "build": "next build",
+    "start": "npm run websocket-server & next start",
+    "lint": "eslint --ext .ts,.js,.tsx . --ignore-path .gitignore",
+    "lint:fix": "eslint --fix --ext .ts,.js,.tsx . --ignore-path .gitignore",
+    "format": "prettier --write .",
+    "websocket-server": "bin/websocket-server-run.sh"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.13.1",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.1",
+    "@mui/material": "^6.0.2",
+    "@mui/material-nextjs": "^6.0.2",
+    "@mui/x-date-pickers": "^7.18.0",
+    "@types/react-router-dom": "^5.3.3",
+    "@vis.gl/react-google-maps": "^1.2.0",
+    "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
+    "next": "14.2.6",
+    "next-intl": "^3.19.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "socket.io": "^4.8.0",
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@typescript-eslint/eslint-plugin": "^8.2.0",
+    "@typescript-eslint/parser": "^8.2.0",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.6",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5"
+  }
+}

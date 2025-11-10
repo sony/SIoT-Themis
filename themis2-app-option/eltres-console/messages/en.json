@@ -1,0 +1,27 @@
+{
+  "common": {
+    "backHomeLabel": "Back to Home"
+  },
+  "header": {
+    "signOut": "Sign Out"
+  },
+  "csvUpload": {
+    "submit": "Submit",
+    "success": "Submission successful."
+  },
+  "validationError": {
+    "server": {
+      "required": "Validation Error: Required value.",
+      "invalid": "Validation Error: Invalid value.",
+      "extensionInvalid": "Validation Error: Invalid extension.",
+      "parseFailed": "Error: Failed to read file."
+    },
+    "client": {
+      "extensionInvalid": "Invalid extension."
+    }
+  },
+  "errorPage": {
+    "title": "Unexpected error occurred",
+    "pageNotFound": "Page not found"
+  }
+}

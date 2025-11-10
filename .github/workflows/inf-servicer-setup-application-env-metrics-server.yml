@@ -1,0 +1,56 @@
+name: Setup application env (Metrics Server)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  Provision-1:
+    name: Metrics Server Provision (Servicer1)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: MetricsServer
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_sa \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_clusterrole_aggregated_reader \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_clusterrole_main \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_rolebinding \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_clusterrolebinding_auth \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_clusterrolebinding_main \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_svc \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_dply \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.metrics_apisvc
+      target_env: ${{ inputs.target_env }}
+      ekspod: sol_prov
+
+  Provision-2:
+    name: Metrics Server Provision (Servicer2)
+    needs: Provision-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: MetricsServer
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_sa \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_clusterrole_aggregated_reader \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_clusterrole_main \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_rolebinding \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_clusterrolebinding_auth \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_clusterrolebinding_main \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_svc \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_dply \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.metrics_apisvc
+      target_env: ${{ inputs.target_env }}
+      ekspod: sol_prov2

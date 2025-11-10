@@ -1,0 +1,50 @@
+pre-commit:
+  parallel: true
+  commands:
+    platform-console:
+      root: themis2-app-platform/platform-console/
+      glob: "*.{js,jsx,ts,tsx}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    data-controller-api-for-documentdb:
+      root: themis2-app-platform/data-controller-api-for-documentdb/
+      glob: '*.{js,ts}'
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    realtime-notification-api-for-documentdb:
+      root: themis2-app-platform/realtime-notification-api-for-documentdb/
+      glob: '*.{js,ts}'
+      exclude:
+        - '**/.eslintrc.*'
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+    
+    eltres-agent:
+      root: themis2-app-option/eltres-agent
+      glob: "*.{js,jsx,ts,tsx}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    eltres-console:
+      root: themis2-app-option/eltres-console
+      glob: "*.{js,jsx,ts,tsx}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    test-device:
+      root: themis2-app-option/test-device
+      glob: "*.{js,ts}"
+      exclude:
+        - "**/.eslint.config.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true

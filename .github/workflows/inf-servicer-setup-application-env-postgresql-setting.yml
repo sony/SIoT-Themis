@@ -1,0 +1,145 @@
+name: Setup application env (PostgreSQL Setting)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  Database-creations-1:
+    name: PostgreSQL Database Creation (Servicer1)
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Database creations
+        run: |
+          cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-servicer-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+          aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+          kubectl wait --for=condition=Ready pod -l app=postgres --timeout=300s
+          echo "Creating keycloak database..."
+          kubectl exec -it themis2-${{ inputs.target_env }}-postgresql-0 -- bash -c \
+          "psql -h localhost -U postgres -c \"SELECT 1 FROM pg_database WHERE datname='keycloak'\" | grep -q 1 || psql -h localhost -U postgres -c \"CREATE DATABASE keycloak;\""
+          echo "Creating themis2 database..."
+          kubectl exec -it themis2-${{ inputs.target_env }}-postgresql-0 -- bash -c \
+          "psql -h localhost -U postgres -c \"SELECT 1 FROM pg_database WHERE datname='themis2'\" | grep -q 1 || psql -h localhost -U postgres -c \"CREATE DATABASE themis2;\""
+  
+  Database-creations-2:
+    name: PostgreSQL Database Creation (Servicer2)
+    needs: Database-creations-1
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Database creations
+        run: |
+          cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-servicer-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+          aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+          kubectl wait --for=condition=Ready pod -l app=postgres --timeout=300s
+          echo "Creating keycloak database..."
+          kubectl exec -it themis2-${{ inputs.target_env }}-postgresql-0 -- bash -c \
+          "psql -h localhost -U postgres -c \"SELECT 1 FROM pg_database WHERE datname='keycloak'\" | grep -q 1 || psql -h localhost -U postgres -c \"CREATE DATABASE keycloak;\""
+          echo "Creating themis2 database..."
+          kubectl exec -it themis2-${{ inputs.target_env }}-postgresql-0 -- bash -c \
+          "psql -h localhost -U postgres -c \"SELECT 1 FROM pg_database WHERE datname='themis2'\" | grep -q 1 || psql -h localhost -U postgres -c \"CREATE DATABASE themis2;\""
+
+  ApplicationBuild:
+    name: Application build (PostgreSQL)
+    needs: Database-creations-2
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-servicer-postgres.yml
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+
+  DeletePreviousJob-1:
+    name: Delete Previous Job (Servicer1)
+    needs: ApplicationBuild
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - uses: ./.github/actions/delete-eks-job
+        with:
+          job-name: themis2-${{ inputs.target_env }}-postgres-setting
+          working-dir: themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          aws-account: ${{ vars.AWS_ACCOUNT }}
+          aws-region: ${{ vars.AWS_REGION }}
+          backend-bucket-name: themis2-${{ inputs.target_env }}-servicer-s3-tfstate
+          eks-cluster-name: sol_prov_eks_cluster_name
+
+  PostgesSetup-1:
+    name: Postgres Setup (Servicer1)
+    needs: DeletePreviousJob-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: Postgres
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.postgres_setting
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=complete job -l name=postgres-setting,app=app --timeout=300s
+      ekspod: sol_prov
+
+  DeletePreviousJob-2:
+    name: Delete Previous Job (Servicer2)
+    needs: PostgesSetup-1
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - uses: ./.github/actions/delete-eks-job
+        with:
+          job-name: themis2-${{ inputs.target_env }}-postgres-setting
+          working-dir: themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          aws-account: ${{ vars.AWS_ACCOUNT }}
+          aws-region: ${{ vars.AWS_REGION }}
+          backend-bucket-name: themis2-${{ inputs.target_env }}-servicer-s3-tfstate
+          eks-cluster-name: sol_prov2_eks_cluster_name
+
+  PostgesSetup-2:
+    name: Postgres Setup (Servicer2)
+    needs: DeletePreviousJob-2
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: Postgres
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.postgres_setting
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=complete job -l name=postgres-setting,app=app --timeout=300s
+      ekspod: sol_prov2

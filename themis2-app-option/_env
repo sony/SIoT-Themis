@@ -1,0 +1,12 @@
+# themis2-app-option/docker-compose.yml themis2-app-option/docker-compose-prod.yml
+POSTGRES_USER=themis2
+# themis2-app-platformのPOSTGRES_PASSWORDに合わせる必要がある
+POSTGRES_PASSWORD=CHANGE_TO_RANDOM_STRING
+
+ELTRES_CONSOLE_URL=http://localhost:6001
+
+MQTT_BROKER_HOST=CHANGE_TO_IoT_Core_HOSTNAME
+MQTT_BROKER_PORT=CHANGE_TO_IoT_Core_PORT
+
+# ローカル動作確認の場合falseに設定する (未設定の場合はtrue扱い)
+TLS=

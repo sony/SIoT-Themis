@@ -1,0 +1,27 @@
+{
+  "common": {
+    "backHomeLabel": "ホームに戻る"
+  },
+  "header": {
+    "signOut": "サインアウト"
+  },
+  "csvUpload": {
+    "submit": "送信",
+    "success": "正常に送信されました。"
+  },
+  "validationError": {
+    "server": {
+      "required": "Validation Error: 必須の値です。",
+      "invalid": "Validation Error: 無効な値です。",
+      "extensionInvalid": "Validation Error: 無効な拡張子です。",
+      "parseFailed": "Error: ファイルの読み取りに失敗しました。"
+    },
+    "client": {
+      "extensionInvalid": "無効な拡張子です。"
+    }
+  },
+  "errorPage": {
+    "title": "予期せぬエラーが発生しました。",
+    "pageNotFound": "存在しないページです。"
+  }
+}

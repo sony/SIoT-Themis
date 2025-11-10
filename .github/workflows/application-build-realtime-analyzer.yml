@@ -1,0 +1,60 @@
+name: Deploy RealtimeAnalyzer
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - develop
+      - release/*
+      # - main
+    paths:
+      - themis2-app-servicer/realtime-analyzer/**
+      - .github/workflows/application-build-realtime-analyzer.yml
+      - .github/workflows/container-deploy.yml
+      - .github/workflows/determine-environment.yml
+      - .github/actions/container-build/action.yml
+      - .github/actions/pod-restart/action.yml
+  workflow_call:
+    inputs:
+      GITHUB_ENV:
+        required: true
+        type: string
+
+jobs:
+  determine-environment:
+    uses: ./.github/workflows/determine-environment.yml
+
+  get-env-vars:
+    needs: determine-environment
+    environment: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    outputs:
+      ENV: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}
+    steps:
+      - name: Get environment variables
+        run: echo "Environment variables retrieved"
+      - name: Log environment variables
+        run: |
+          echo "ENV: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}"
+          echo "AWS_REGION: ${{ vars.AWS_REGION }}"
+          echo "AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}"
+
+  RealtimeAnalyzer:
+    needs: [determine-environment, get-env-vars]
+    uses: ./.github/workflows/container-deploy.yml
+    with:
+      APPLICATION_TYPE: servicer
+      ENV: ${{ needs.get-env-vars.outputs.ENV }}
+      AWS_REGION: ${{ needs.get-env-vars.outputs.AWS_REGION }}
+      AWS_ECR_DOMAIN: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}.dkr.ecr.${{ needs.get-env-vars.outputs.AWS_REGION }}.amazonaws.com
+      AWS_ACCOUNT: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}
+      ecr-repository: sample/realtime-analyzer
+      dockerfile-path: ./themis2-app-servicer/realtime-analyzer/Dockerfile
+      context: ./themis2-app-servicer/realtime-analyzer
+      clusters: themis2-${{ needs.get-env-vars.outputs.ENV }}-eks-cp-sol-prov themis2-${{ needs.get-env-vars.outputs.ENV }}-eks-cp-sol-prov2
+      restart-workload: realtime-analyzer

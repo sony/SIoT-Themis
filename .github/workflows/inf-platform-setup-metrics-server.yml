@@ -1,0 +1,36 @@
+name: MetricsServer Provision
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  MetricsServer-Provision:
+    name: MetricsServer-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: MetricsServer
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_sa \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_clusterrole_aggregated_reader \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_clusterrole_main \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_rolebinding \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_clusterrolebinding_auth \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_clusterrolebinding_main \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_svc \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.metrics_apisvc
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l k8s-app=metrics-server -n kube-system --timeout=300s

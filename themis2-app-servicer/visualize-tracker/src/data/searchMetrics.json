@@ -1,0 +1,52 @@
+[
+  {
+    "field": "data.gnss",
+    "display": "gnss",
+    "type": "number"
+  },
+  {
+    "field": "data.height",
+    "display": "height",
+    "type": "number"
+  },
+  {
+    "field": "data.speed",
+    "display": "speed",
+    "type": "number"
+  },
+  {
+    "field": "data.course",
+    "display": "course",
+    "type": "number"
+  },
+  {
+    "field": "data.adc",
+    "display": "adc",
+    "type": "number"
+  },
+  {
+    "field": "data.temperature",
+    "display": "temperature",
+    "type": "number"
+  },
+  {
+    "field": "data.sos",
+    "display": "sos",
+    "type": "number"
+  },
+  {
+    "field": "data.userdata",
+    "display": "userdata",
+    "type": "number"
+  },
+  {
+    "field": "data.alert",
+    "display": "alert",
+    "type": "number"
+  },
+  {
+    "field": "serviceTag.serviceId",
+    "display": "serviceId",
+    "type": "string"
+  }
+]

@@ -1,0 +1,59 @@
+{
+  "common": {
+    "copyButtonLabel": "コピー",
+    "addButtonLabel": "追加",
+    "deleteButtonLabel": "削除",
+    "saveButtonLabel": "保存",
+    "agreeButtonLabel": "はい",
+    "denyButtonLabel": "いいえ",
+    "backHomeLabel": "ホームに戻る"
+  },
+  "validationError": {
+    "server": {
+      "required": "Validation Error: 必須の値です。",
+      "invalid": "Validation Error: 無効な値です。",
+      "servicerNameIsNotUnique": "Validation Error: 既に使用されている{servicer}名です。",
+      "extensionInvalid": "Validation Error: 無効な拡張子です。",
+      "parseFailed": "Error: ファイルの読み取りに失敗しました。",
+      "servicerNotFound": "Error: 存在しないサービサーです。",
+      "apiKeyCreateFailed": "Error: API Keyの作成に失敗しました。",
+      "subscriptionUpdateFailed": "{count}件中{failedCount}件のサブスクリプション設定更新に失敗しました。",
+      "subscriptionDeleteFailed": "{count}件中{failedCount}件のサブスクリプション設定削除に失敗したため、サービサーを削除できません。",
+      "subscriptionCreateFailed": "保存に失敗しました。",
+      "orionCreateFailed": "Orion に対するサブスクリプションの作成に失敗しました。",
+      "principalIdNotUnique": "Validation Error: 別のサービサーに登録済みです。"
+    },
+    "client": {
+      "exceededLength": "{field}は{maxLength}文字以内で入力してください。",
+      "required": "{field}が空です。",
+      "invalid": "不正な{field}です。",
+      "extensionInvalid": "拡張子が不正です。"
+    }
+  },
+  "errorPage": {
+    "title": "予期せぬエラーが発生しました。",
+    "pageNotFound": "存在しないページです。"
+  },
+  "header": {
+    "home": "ホーム",
+    "signOut": "ログアウト"
+  },
+  "servicer": {
+    "backButtonLabel": "一覧に戻る",
+    "servicer": "サービサー",
+    "servicerName": "サービサー名",
+    "apiKeyInputLabel": "API Key",
+    "realtimeLabel": "リアルタイム分析",
+    "apiEndpointInputLabel": "API Endpoint",
+    "permissionLabel": "アクセス権限",
+    "principalId": "Principal ID",
+    "copiedApiKey": "API Keyをコピーしました",
+    "manual": "手動",
+    "csv": "CSV",
+    "overwritePrincipalIds": "※ファイル内のPrincipal IDで上書きされます",
+    "confirmDeleteTitle": "削除確認",
+    "confirmDeleteContent": "以下の{servicer}を削除してもよろしいですか？\nサービサー: {name}",
+    "successSaved": "{name}を保存しました。\n設定の反映に数分かかる場合があります。",
+    "successDeleted": "{name}を削除しました。"
+  }
+}

@@ -1,0 +1,60 @@
+name: Setup application env (Keycloak)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  Provision-1:
+    name: Keycloak Provision (Servicer1)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: Keycloak
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.keycloak_svc \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.keycloak_secret \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.keycloak_tgb \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.keycloak_dply \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.keycloak_network_policy
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l app=keycloak --timeout=300s
+      eks-resource-to-restart: deployment/themis2-${{ inputs.target_env }}-keycloak
+      ekspod: sol_prov
+
+  Provision-2:
+    name: Keycloak Provision (Servicer2)
+    needs: Provision-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: Keycloak
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.keycloak_svc \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.keycloak_secret \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.keycloak_tgb \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.keycloak_dply \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.keycloak_network_policy
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l app=keycloak --timeout=300s
+      eks-resource-to-restart: deployment/themis2-${{ inputs.target_env }}-keycloak
+      ekspod: sol_prov2

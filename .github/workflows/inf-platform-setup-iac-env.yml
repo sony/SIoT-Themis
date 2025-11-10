@@ -1,0 +1,135 @@
+name: IaC Environment (S3/VPC/EC2) Provision
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  # Opentofu状態ファイル格納用S3バケット作成
+  S3-Provision:
+    name: S3 Provision
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
+    permissions:
+      id-token: write # OIDC 認証を使用するために必要
+      contents: read
+      actions: write
+    env:
+      BUCKET_NAME: themis2-${{ inputs.target_env }}-s3-tfstate
+
+    steps:
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Check if bucket exists
+        id: check_bucket
+        run: |
+          if aws s3api head-bucket --bucket ${{ env.BUCKET_NAME }} 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create S3 Bucket
+        if: steps.check_bucket.outputs.exists == 'false'
+        run: |
+          # バケット作成（既存時はスキップ）
+          aws s3api create-bucket \
+            --bucket ${{ env.BUCKET_NAME }} \
+            --create-bucket-configuration LocationConstraint=${{ vars.AWS_REGION }}
+
+          # バージョニング有効化
+          aws s3api put-bucket-versioning \
+            --bucket ${{ env.BUCKET_NAME }} \
+            --versioning-configuration Status=Enabled
+
+          # タグ付与
+          aws s3api put-bucket-tagging \
+            --bucket ${{ env.BUCKET_NAME }} \
+            --tagging 'TagSet=[
+              {Key=environment,Value=test},
+              {Key=create-by-terraform,Value=false},
+              {Key=systemname,Value=themis2},
+              {Key=Name,Value=${{ env.BUCKET_NAME }}}              
+            ]'
+
+  VPC-Provision:
+    name: VPC Provision
+    needs: S3-Provision
+    uses: ./.github/workflows/inf-platform-opentofu-applying-github-hosted.yml
+    secrets: inherit
+    with:
+      module-name: VPC
+      target: -target=module.vpc
+      target_env: ${{ inputs.target_env }}
+    permissions:
+      id-token: write # OIDC 認証を使用するために必要
+      contents: read
+      actions: write
+
+  EC2-Provision:
+    name: EC2 Provision
+    needs: VPC-Provision
+    uses: ./.github/workflows/inf-platform-opentofu-applying-github-hosted.yml
+    secrets: inherit
+    with:
+      module-name: EC2
+      target: -target=module.ec2
+      target_env: ${{ inputs.target_env }}
+    permissions:
+      id-token: write # OIDC 認証を使用するために必要
+      contents: read
+      actions: write
+
+  Post-Setup-EC2:
+    name: Post Setup EC2
+    needs: EC2-Provision
+    runs-on: ec2-iac-platform-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Add EC2 user
+        env:
+          EXTRA_USER: ${{ vars.EXTRA_USERS }}
+        run: |
+          echo "$EXTRA_USER" | jq -c '.[]' | while read user; do
+            username=$(echo "$user" | jq -r '.id')
+            publickey=$(echo "$user" | jq -r '.publicKey')
+
+            if id "$username" &>/dev/null; then
+              echo "User $username already exists, skipping..."
+            else
+              echo "Creating user $username..."
+              sudo useradd -m -s /bin/bash $username
+              sudo passwd -d $username
+              sudo usermod -aG sudo $username
+              sudo mkdir -p /home/$username/.ssh
+              echo "$publickey" | sudo tee /home/$username/.ssh/authorized_keys > /dev/null
+              sudo chown -R "$username":"$username" /home/$username/.ssh
+              sudo chmod 700 /home/$username/.ssh
+              sudo chmod 600 /home/$username/.ssh/authorized_keys
+              echo "User $username created and SSH key added."
+            fi
+          done
+
+      - name: Ensure scripts directory exists
+        run: mkdir -p scripts
+      - name: Create init script from CONTENT variable (with LF only)
+        run: |
+          # tr で CR(\r) を削除して書き出し
+          cat << 'EOF'| tr -d '\r' > scripts/00_init.sh
+          ${{ vars.CONTENT }}
+          EOF
+      - name: Add execute permission to all scripts
+        run: chmod a+x scripts/*
+      - name: Execute all scripts under scripts/
+        shell: bash
+        run: |
+          for file in scripts/*.sh; do
+            sudo bash "$file"
+          done

@@ -1,0 +1,51 @@
+{
+  "name": "eltres-console",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --ext .ts,.js,.tsx . --ignore-path .gitignore",
+    "lint:fix": "eslint --fix --ext .ts,.js,.tsx . --ignore-path .gitignore",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.13.1",
+    "@emotion/react": "^11.13.3",
+    "@emotion/server": "^11.11.0",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^6.1.2",
+    "@mui/material-nextjs": "^6.1.2",
+    "next": "^15.0.0",
+    "next-auth": "^4.24.8",
+    "next-intl": "^4.0.0",
+    "papaparse": "^5.4.1",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "overrides": {
+    "@mui/material-nextjs": {
+      "next": "$next"
+    },
+    "next-auth": {
+      "next": "$next",
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.8.0",
+    "@typescript-eslint/parser": "^8.8.0",
+    "eslint": "^8",
+    "eslint-config-next": "^15.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "common": {
+    "backHomeLabel": "ホームに戻る"
+  },
+  "VisualizeTracker": {
+    "currentLocationAcquisitionFailed": "現在地の取得に失敗しました。"
+  },
+  "errorPage": {
+    "title": "予期せぬエラーが発生しました。",
+    "pageNotFound": "存在しないページです。"
+  },
+  "error": {
+    "iconLocationsAcquisitionFailed": "センサー位置の取得に失敗しました。"
+  },
+  "SearchPanel": {
+    "fromDate": "開始日",
+    "toDate": "終了日",
+    "time": "時間",
+    "search": "検索",
+    "searchGeoLocation": "ジオロケーション検索",
+    "whole":"全域",
+    "circle":"正円検索",
+    "latitude":"緯度",
+    "longitude":"経度",
+    "radius":"半径（km）",
+    "searchKeyValue": "キーバリュー検索",
+    "fieldSelect":"選択項目",
+    "value":"値",
+    "latitudeInputError": "不正な緯度です。",
+    "longitudeInputError": "不正な経度です。",
+    "radiusInputError": "不正な半径（km）です。",
+    "fieldSelctError": "検索キーを選択してください。",
+    "valueInputError": "検索値を入力してください。",
+    "missingSearchInputError": "検索条件を入力してください。",
+    "realtime": "リアルタイム表示"
+  },
+  "Tab": {
+    "display": "画面表示",
+    "search": "データ検索"
+  },
+  "DisplayPanel": {
+    "overlay": "データを重ねて表示",
+    "dataSource": "データソース",
+    "select": "選択してください",
+    "color": "色の指定",
+    "opacity": "透過率"
+  },
+  "notify": {
+    "realtimeDisplayFailed": "リアルタイム表示に失敗しました。",
+    "realtimeStopFailed": "リアルタイム表示が停止できませんでした。"
+  }
+}

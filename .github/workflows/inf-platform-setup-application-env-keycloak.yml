@@ -1,0 +1,32 @@
+name: Setup application env (Keycloak)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  Provision:
+      name: Keycloak Provision
+      permissions:
+        id-token: write
+        contents: read
+        actions: write
+      uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+      secrets: inherit
+      with:
+        target_env: ${{ inputs.target_env }}
+        module-name: Keycloak
+        target: |
+          -target=module.ekspod_infra.kubernetes_manifest.keycloak_svc \
+          -target=module.ekspod_infra.kubernetes_manifest.keycloak_secret \
+          -target=module.ekspod_infra.kubernetes_manifest.keycloak_tgb \
+          -target=module.ekspod_infra.kubernetes_manifest.keycloak_dply \
+          -target=module.ekspod_infra.kubernetes_manifest.keycloak_network_policy
+        health-check-command: |
+          cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+          EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+          aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+          kubectl wait --for=condition=Ready pod -l app=keycloak --timeout=300s

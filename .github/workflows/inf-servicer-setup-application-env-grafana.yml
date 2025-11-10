@@ -1,0 +1,67 @@
+name: Setup application env (Grafana)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  ApplicationBuild:
+    name: Application build (Grafana)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-grafana.yml
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+
+  Provision-1:
+    name: Grafana Provision (Servicer1)
+    needs: ApplicationBuild
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: Grafana
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.grafana_stfs \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.grafana_svc \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.grafana_tgb
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l app=grafana --timeout=300s
+      eks-resource-to-restart: sts/themis2-${{ inputs.target_env }}-grafana
+      target_env: ${{ inputs.target_env }}
+      ekspod: sol_prov
+
+  Provision-2:
+    name: Grafana Provision (Servicer2)
+    needs: Provision-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: Grafana
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.grafana_stfs \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.grafana_svc \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.grafana_tgb
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l app=grafana --timeout=300s
+      eks-resource-to-restart: sts/themis2-${{ inputs.target_env }}-grafana
+      target_env: ${{ inputs.target_env }}
+      ekspod: sol_prov2

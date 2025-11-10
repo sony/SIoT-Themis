@@ -1,0 +1,36 @@
+name: Provision DocumentDB
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  DocumentDB-Provision:
+    name: DocumentDB Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: DocumentDB
+      target: -target=module.orion_docdb -target=module.cygnus_docdb
+  Cygnus-index-creations:
+    name: Cygnus index creations
+    needs: DocumentDB-Provision
+    runs-on: ec2-iac-platform-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+      - name: Cygnus index creations
+        run: |
+          cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -O global-bundle.pem
+          CYGNUS_DOCDB_ENDPOINT=$(tofu output cygnus_docdb_endpoint)
+          mongosh --host $CYGNUS_DOCDB_ENDPOINT --port 27017 --tls --tlsCAFile global-bundle.pem --retryWrites=false --username cygnus_mongodb_admin --password ${{ secrets.CYGNUS_DOCDB_MASTER_PASSWORD }} --eval 'db.sth_x002f.createIndex({ "location": "2dsphere" })'

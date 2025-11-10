@@ -1,0 +1,34 @@
+name: Provision IaC Environment (S3/VPC/EC2)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  IaC-Environment:
+    name: Provision IaC Environment (S3/VPC/EC2)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-iac-env.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+
+  ACM-Provision:
+    name: ACM Provision
+    needs: IaC-Environment
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-github-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: ACM
+      target: -target=module.acm

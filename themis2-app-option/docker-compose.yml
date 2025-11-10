@@ -1,0 +1,70 @@
+services:
+  eltres-agent:
+    container_name: eltres-agent
+    image: node:20.16.0
+    working_dir: /app/eltres-agent
+    tty: true
+    volumes:
+      - ./eltres-agent:/app/eltres-agent
+      - ./externals/themis2-app/schema:/app/eltres-agent/packages/schema
+    ports:
+      - "6000:3000"
+
+  eltres-console:
+    container_name: eltres-console
+    image: node:22-slim
+    working_dir: /app/eltres-console
+    tty: true
+    volumes:
+      - ./eltres-console:/app/eltres-console
+    ports:
+      - "6001:3000"
+
+  test-device:
+    container_name: test-device
+    image: node:20.16.0
+    working_dir: /app/test-device
+    tty: true
+    volumes:
+      - ./test-device:/app/test-device
+
+  redis:
+    container_name: redis
+    image: redis:7.4.2
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  iot-agent:
+    image: telefonicaiot/iotagent-json:latest
+    hostname: iot-agent
+    container_name: iot-agent
+    ports:
+      - "4041:4041"
+      - "7896:7896"
+    volumes:
+      - ./iotagent-json/certs:/iotagent-json/certs
+    environment:
+      - IOTA_MQTT_PORT=8883
+      - IOTA_MQTT_PROTOCOL=mqtts
+      - IOTA_MQTT_QOS=1
+      - IOTA_MQTT_HOST=[MQTT Brokerのホスト名]
+      - IOTA_MQTT_CA=/iotagent-json/certs/AmazonRootCA.crt
+      - IOTA_MQTT_CERT=/iotagent-json/certs/certificate.pem
+      - IOTA_MQTT_KEY=/iotagent-json/certs/private-client.key
+      - IOTA_MQTT_SUBSCRIBE_BATCH_SIZE=8
+      - IOTA_CB_HOST=orion
+      - IOTA_MONGO_HOST=orion-mongo
+      - IOTA_MONGO_DB=iotagentjson
+
+networks:
+  default:
+    name: themis2-app-platform
+    external: true

@@ -1,0 +1,5 @@
+#!/bin/bash
+PGPASSWORD="${POSTGRES_PASSWORD}" psql -h /var/run/postgresql -U $POSTGRES_USER <<-EOS
+  CREATE DATABASE keycloak;
+  GRANT ALL PRIVILEGES ON DATABASE keycloak TO $POSTGRES_USER;
+EOS

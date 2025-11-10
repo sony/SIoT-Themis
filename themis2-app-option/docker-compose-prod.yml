@@ -1,0 +1,102 @@
+services:
+  eltres-agent:
+    container_name: eltres-agent
+    build:
+      context: ..
+      dockerfile: ./themis2-app-option/eltres-agent/Dockerfile
+    working_dir: /app/eltres-agent
+    ports:
+      - "6000:3000"
+    environment:
+      - POSTGRES_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/themis2?schema=public
+      - HOST=$MQTT_BROKER_HOST
+      - PORT=$MQTT_BROKER_PORT
+      - CA_PATH=certs/AmazonRootCA.crt
+      - CERT_PATH=certs/certificate.pem
+      - KEY_PATH=certs/private-client.key
+      - DUPLICATION_CHECK_TTL=60
+      - TLS=$TLS
+      - TOPICS=["topicName1","topicName2"]
+      - MAPPINGS_PATH=mappings/mappings.json
+      - ORION_URL=http://orion:1026
+      - FIWARE_SERVICE=themis2
+      - FIWARE_SERVICE_PATH=/
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=development
+      - REDIS_RETRIES=3
+      - REDIS_PREFIX="mqtt-message"
+    depends_on:
+      redis:
+        condition: service_started
+
+  eltres-console:
+    build:
+      context: ./eltres-console
+      dockerfile: Dockerfile
+      args:
+        NEXTAUTH_URL: $ELTRES_CONSOLE_URL
+    container_name: eltres-console
+    working_dir: /app/eltres-console
+    ports:
+      - "6001:3000"
+    volumes:
+      - ../themis2-app-platform/keycloak:/setup
+    environment:
+      KEYCLOAK_ENDPOINT: http://keycloak:8080
+    command: ["cp /setup/.env.local.eltres /app/eltres-console/.env.local && npm run start"]
+    restart: unless-stopped
+ 
+  test-device:
+    container_name: test-device
+    build:
+      context: ./test-device
+      dockerfile: Dockerfile
+    working_dir: /app/test-device
+    tty: true
+    environment:
+      - TEST_DEVICE_TOPIC=5Qmtufl2POvbHgCTZAg1KowPP2ZHkEzP/eltres-device-1/attrs
+      - TEST_DEVICE_MODE=send
+    ports:
+      - "8883:8883"
+
+  redis:
+    container_name: redis
+    image: redis:7.4.2
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  iot-agent:
+    image: telefonicaiot/iotagent-json:latest
+    hostname: iot-agent
+    container_name: iot-agent
+    ports:
+      - "4041:4041"
+      - "7896:7896"
+    volumes:
+      - ./iotagent-json/certs:/iotagent-json/certs
+    environment:
+      - IOTA_MQTT_PORT=$MQTT_BROKER_PORT
+      - IOTA_MQTT_PROTOCOL=mqtts
+      - IOTA_MQTT_QOS=1
+      - IOTA_MQTT_HOST=$MQTT_BROKER_HOST
+      - IOTA_MQTT_CA=/iotagent-json/certs/AmazonRootCA.crt
+      - IOTA_MQTT_CERT=/iotagent-json/certs/certificate.pem
+      - IOTA_MQTT_KEY=/iotagent-json/certs/private-client.key
+      - IOTA_MQTT_SUBSCRIBE_BATCH_SIZE=8
+      - IOTA_CB_HOST=orion
+      - IOTA_MONGO_HOST=orion-mongo
+      - IOTA_MONGO_DB=iotagentjson
+
+networks:
+  default:
+    name: themis2-app-platform
+    external: true

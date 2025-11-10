@@ -1,0 +1,59 @@
+{
+  "common": {
+    "copyButtonLabel": "Copy",
+    "addButtonLabel": "Add",
+    "deleteButtonLabel": "Delete",
+    "saveButtonLabel": "Save",
+    "agreeButtonLabel": "Yes",
+    "denyButtonLabel": "No",
+    "backHomeLabel": "Back to Home"
+  },
+  "validationError": {
+    "server": {
+      "required": "Validation Error: Required value.",
+      "invalid": "Validation Error: Invalid value.",
+      "servicerNameIsNotUnique": "Validation Error: {servicer} name is already used.",
+      "extensionInvalid": "Validation Error: Invalid extension.",
+      "parseFailed": "Error: Failed to read file.",
+      "servicerNotFound": "Error: Servicer not found.",
+      "apiKeyCreateFailed": "Error: Failed to create API Key.",
+      "subscriptionUpdateFailed": "{failedCount} out of {count} subscriptions failed to update.",
+      "subscriptionDeleteFailed": "Failed to delete servicer due to {failedCount} out of {count} subscriptions failing to delete.",
+      "subscriptionCreateFailed": "Failed to save data.",
+      "orionCreateFailed": "Failed to create subscription for Orion.",
+      "principalIdNotUnique": "Validation Error: Principal ID already registered to another servicer."
+    },
+    "client": {
+      "exceededLength": "{field} must be {maxLength} characters or less.",
+      "required": "{field} is empty.",
+      "invalid": "Invalid {field}.",
+      "extensionInvalid": "Invalid extension."
+    }
+  },
+  "errorPage": {
+    "title": "Unexpected error occurred",
+    "pageNotFound": "Page not found"
+  },
+  "header": {
+    "home": "Home",
+    "signOut": "Sign Out"
+  },
+  "servicer": {
+    "backButtonLabel": "Back to list",
+    "servicer": "Servicer",
+    "servicerName": "Servicer Name",
+    "apiKeyInputLabel": "API Key",
+    "realtimeLabel": "Real-time Analysis",
+    "apiEndpointInputLabel": "API Endpoint",
+    "permissionLabel": "Access Permission",
+    "principalId": "Principal ID",
+    "copiedApiKey": "Copied API Key",
+    "manual": "Manual",
+    "csv": "CSV",
+    "overwritePrincipalIds": "* Entered Principal IDs will be overwritten by the Principal IDs in the CSV file.",
+    "confirmDeleteTitle": "Delete Confirmation",
+    "confirmDeleteContent": "Are you sure you want to delete the following {servicer}?\nServicer: {name}",
+    "successSaved": "Saved {name}.\nConfiguration changes may take a few minutes to be reflected.",
+    "successDeleted": "Deleted {name}."
+  }
+}

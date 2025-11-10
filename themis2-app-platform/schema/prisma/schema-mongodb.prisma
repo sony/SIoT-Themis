@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+  output = "./client/mongodb"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_DATABASE_URL")
+}
+
+model SthX002f {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  entityId    String
+  entityType  String
+  timestamp   DateTime
+  location    Json?
+  data        Json
+  serviceTag  Json
+  version     Int      @map("_version")
+  dataPayload String   @map("_dataPayload")
+  lfourId     Int      @map("_lfourId")
+  rssi        Int      @map("_rssi")
+  minver      Int?     @map("_minver")
+  rssiDbm     Float?   @map("_rssi_dbm")
+  snr         Float?   @map("_snr")
+  foffset     Float?   @map("_foffset")
+  delay       Float?   @map("_delay")
+  nwpId       Int?     @map("_nwpId")
+  stId        Int?     @map("_stId")
+  stDevId     Int?     @map("_stDevId")
+  txTime      Int      @map("_txTime")
+
+  @@map("sth_x002f")
+}

@@ -1,0 +1,40 @@
+name: Provision Aurora PostgreSQL
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  Aurora-PostgreSQL-Provision:
+    name: Aurora PostgreSQL Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: AuroraPostgreSQL
+      target: -target=module.aurora_db
+  Database-creations:
+    name: Database creations
+    needs: Aurora-PostgreSQL-Provision
+    runs-on: ec2-iac-platform-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    env:
+      PGPASSWORD: ${{ secrets.AURORA_MASTER_PASSWORD }}
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+      - name: Database creations
+        run: |
+          cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          AURORA_DB_ENDPOINT=$(tofu output aurora_db_endpoint)
+          psql -h ${AURORA_DB_ENDPOINT//\"/} -U postgres -c "SELECT 1 FROM pg_database WHERE datname='keycloak'" | grep -q 1 || psql -h ${AURORA_DB_ENDPOINT//\"/} -U postgres -c "create database keycloak;"
+          psql -h ${AURORA_DB_ENDPOINT//\"/} -U postgres -c "SELECT 1 FROM pg_database WHERE datname='kong'" | grep -q 1 || psql -h ${AURORA_DB_ENDPOINT//\"/} -U postgres -c "create database kong;"
+          psql -h ${AURORA_DB_ENDPOINT//\"/} -U postgres -c "SELECT 1 FROM pg_database WHERE datname='themis2'" | grep -q 1 || psql -h ${AURORA_DB_ENDPOINT//\"/} -U postgres -c "create database themis2;"

@@ -1,0 +1,28 @@
+name: Pod Restart
+inputs:
+  region:
+    required: true
+  clusters:
+    required: true
+  workload:
+    required: true
+  stateful:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        CLUSTERS=(${{ inputs.clusters }})
+        for CLUSTER in "${CLUSTERS[@]}"; do
+          echo "Switching to cluster: $CLUSTER"
+          aws eks --region ${{ inputs.region }} update-kubeconfig --name "$CLUSTER"
+          if [ "${{ inputs.stateful }}" = "true" ]; then
+            echo "Restarting StatefulSet: ${{ inputs.workload }} in $CLUSTER"
+            kubectl rollout restart statefulset/${{ inputs.workload }}
+          else
+            echo "Restarting Deployment: ${{ inputs.workload }} in $CLUSTER"
+            kubectl rollout restart deploy/${{ inputs.workload }}
+          fi
+        done
+      shell: bash

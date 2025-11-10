@@ -1,0 +1,7 @@
+{
+     "endpoint": "[Change to endpoint for AWS IoT Core]",
+     "caPath": "./certs/AmazonRootCA.crt",
+     "certificatePath": "./certs/certificate.pem",
+     "keyPath": "./certs/private-client.key",
+     "port": 8883
+}

@@ -1,0 +1,87 @@
+[
+  {
+    "field": "id",
+    "display": "id"
+  },
+  {
+    "field": "type",
+    "display": "type"
+  },
+  {
+    "field": "timestamp",
+    "display": "timestamp"
+  },
+  {
+    "field": "location.coordinates",
+    "display": "coordinates"
+  },
+  {
+    "field": "data.gnss",
+    "display": "gnss",
+    "gain": 10000
+  },
+  {
+    "field": "data.height",
+    "display": "height",
+    "gain": 10000
+  },
+  {
+    "field": "data.speed",
+    "display": "speed",
+    "gain": 10000
+  },
+  {
+    "field": "data.course",
+    "display": "course",
+    "gain": 10000
+  },
+  {
+    "field": "data.adc",
+    "display": "adc",
+    "gain": 10000
+  },
+  {
+    "field": "data.temperature",
+    "display": "temperature",
+    "gain": 10000
+  },
+  {
+    "field": "data.sos",
+    "display": "sos",
+    "gain": 10000
+  },
+  {
+    "field": "data.userdata",
+    "display": "userdata",
+    "gain": 10000
+  },
+  {
+    "field": "data.alert",
+    "display": "alert",
+    "gain": 10000
+  },
+  {
+    "field": "_version",
+    "display": "_version"
+  },
+  {
+    "field": "_txTime",
+    "display": "_txTime"
+  },
+  {
+    "field": "_dataPayload",
+    "display": "_dataPayload"
+  },
+  {
+    "field": "_lfourId",
+    "display": "_lfourId"
+  },
+  {
+    "field": "_rssi",
+    "display": "_rssi"
+  },
+  {
+    "field": "serviceTag.serviceId",
+    "display": "serviceId"
+  }
+]

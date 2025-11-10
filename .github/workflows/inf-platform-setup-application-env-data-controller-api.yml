@@ -1,0 +1,41 @@
+name: Setup application env (Data Controller API)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  ApplicationBuild:
+    name: Application build (Data controller API)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-data-controller-api.yml
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+  
+  Provision:
+    name: Data controller API Provision
+    needs: ApplicationBuild
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: DataControllerAPI
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.docdb_data_controller_api_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.docdb_data_controller_api_svc
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=docdb-data-controller-api,app=app --timeout=300s
+      eks-resource-to-restart: deploy/themis2-${{ inputs.target_env }}-docdb-data-controller-api

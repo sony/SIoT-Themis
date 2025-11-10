@@ -1,0 +1,14 @@
+FROM node:20.16.0
+
+COPY ./ /app
+
+WORKDIR /app
+
+ARG NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY
+
+RUN npm ci && \
+    NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY npm run build && \
+    npm prune --omit=dev
+
+ENTRYPOINT ["sh", "-c"]
+CMD ["npm run start"]

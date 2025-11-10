@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+  output = "./client/postgres"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_DATABASE_URL")
+}
+
+model Servicer {
+  id                    Int                         @id @default(autoincrement())
+  name                  String                      @db.VarChar(50) @unique
+  apiKey                String?                     @map("api_key") @db.VarChar(32) @unique
+  url                   String?                     @db.Text
+  analyze               Boolean                     @default(false)
+  principalIds          String[]                    @map("principal_ids")
+  createdAt             DateTime                    @map("created_at") @default(now())
+  updatedAt             DateTime                    @map("updated_at") @updatedAt
+
+  subscriptions         Subscription[]
+
+  @@map("servicers")
+}
+
+model Subscription {
+  id                                Int             @id @default(autoincrement())
+  servicerId                        Int             @map("servicer_id")
+  subscriptionId                    String          @map("subscription_id") @db.VarChar(24) @unique
+  type                              String          @db.Text
+  createdAt                         DateTime        @map("created_at") @default(now())
+  updatedAt                         DateTime        @map("updated_at") @updatedAt
+
+  servicer                          Servicer        @relation(fields: [servicerId], references: [id])
+
+  @@map("subscriptions")
+}

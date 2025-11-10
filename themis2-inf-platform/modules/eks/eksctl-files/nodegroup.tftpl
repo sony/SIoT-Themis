@@ -1,0 +1,33 @@
+kind: ClusterConfig
+apiVersion: eksctl.io/v1alpha5
+metadata:
+  name: ${cluster_name}
+  region: ${cluster_region}
+vpc:
+  id: ${vpc_id}
+  securityGroup: ${cluster_security_group_id}
+  subnets:
+    private:
+%{ for subnet_id in private_subnet_ids ~}
+      ${subnet_id}:
+        id: ${subnet_id}
+%{ endfor ~}
+managedNodeGroups:
+  - name: ${node_group_name}
+    launchTemplate:
+      id: ${launch_template_id}
+      version: "${launch_template_version}"
+    desiredCapacity: ${node_group_desired_size}
+    minSize: ${node_group_min_size}
+    maxSize: ${node_group_max_size}
+    subnets:
+%{ for subnet_id in private_subnet_ids ~}
+      - ${subnet_id}
+%{ endfor ~}
+    iam:
+      instanceRoleARN: ${node_group_instance_role_arn}
+    privateNetworking: true
+    updateConfig:
+      maxUnavailable: ${node_group_update_config_max_unavailable}
+kubernetesNetworkConfig:
+  serviceIPv4CIDR: ${cluster_service_cidr}

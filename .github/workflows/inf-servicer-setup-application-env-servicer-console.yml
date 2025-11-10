@@ -1,0 +1,209 @@
+name: Setup application env (Servicer Console)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  ApplicationBuild:
+    name: Application build (Servicer Console)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-servicer-console.yml
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+
+  DeletePreviousJob-1:
+    name: Delete Previous Job 1
+    needs: ApplicationBuild
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - uses: ./.github/actions/delete-eks-job
+        with:
+          job-name: themis2-${{ inputs.target_env }}-keycloak-setting
+          working-dir: themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          aws-account: ${{ vars.AWS_ACCOUNT }}
+          aws-region: ${{ vars.AWS_REGION }}
+          backend-bucket-name: themis2-${{ inputs.target_env }}-servicer-s3-tfstate
+          eks-cluster-name: sol_prov_eks_cluster_name
+
+  SetupKeycloak-1:
+    name: Setup application env (Keycloak) 1
+    needs: DeletePreviousJob-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: Keycloak
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.keycloak_setting_configmap \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.keycloak_setting_job
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=complete job -l name=keycloak-setting,app=app --timeout=300s
+        SECRET_INFO=$(kubectl logs job/themis2-${{ inputs.target_env }}-keycloak-setting)
+      ekspod: sol_prov
+  
+  GetSecretInfo-1:
+    name: Get KeyCloak Secret infomation
+    needs: SetupKeycloak-1
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Get KeyCloak Secret infomation
+        id: secret_info
+        run: |
+          cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-servicer-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+          aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+          SECRET_INFO=$(kubectl logs job/themis2-${{ inputs.target_env }}-keycloak-setting)
+          CLIENT_ID_VALUE=$(echo  $SECRET_INFO | jq -r .CLIENT_ID_VALUE)
+          CLIENT_SECRET=$(echo  $SECRET_INFO | jq -r .CLIENT_SECRET)
+          echo "CLIENT_ID_VALUE=$CLIENT_ID_VALUE" >> $GITHUB_OUTPUT
+          echo "CLIENT_SECRET=$CLIENT_SECRET" >> $GITHUB_OUTPUT
+    outputs:
+      CLIENT_ID_VALUE: ${{ steps.secret_info.outputs.CLIENT_ID_VALUE }}
+      CLIENT_SECRET: ${{ steps.secret_info.outputs.CLIENT_SECRET }}
+
+  Provision-1:
+    name: Servicer Console Provision (Servicer1)
+    needs: GetSecretInfo-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: ServicerConsole
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.servicer_console_secret \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.servicer_console_dply \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.servicer_console_svc \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.servicer_console_tgb \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.servicer_console_network_policy
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l app=app,name=servicer-console --timeout=300s
+      eks-resource-to-restart: deployment/themis2-${{ inputs.target_env }}-servicer-console
+      ekspod: sol_prov
+      SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID: ${{ needs.GetSecretInfo-1.outputs.CLIENT_ID_VALUE }}
+      SERVICER_CONSOLE_KEYCLOAK_CLIENT_SECRET: ${{ needs.GetSecretInfo-1.outputs.CLIENT_SECRET }}
+
+  DeletePreviousJob-2:
+    name: Delete Previous Job 2
+    needs: Provision-1
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - uses: ./.github/actions/delete-eks-job
+        with:
+          job-name: themis2-${{ inputs.target_env }}-keycloak-setting
+          working-dir: themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          aws-account: ${{ vars.AWS_ACCOUNT }}
+          aws-region: ${{ vars.AWS_REGION }}
+          backend-bucket-name: themis2-${{ inputs.target_env }}-servicer-s3-tfstate
+          eks-cluster-name: sol_prov2_eks_cluster_name
+
+  SetupKeycloak-2:
+    name: Setup application env (Keycloak) 2
+    needs: DeletePreviousJob-2
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: Keycloak
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.keycloak_setting_configmap \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.keycloak_setting_job
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=complete job -l name=keycloak-setting,app=app --timeout=300s
+        SECRET_INFO=$(kubectl logs job/themis2-${{ inputs.target_env }}-keycloak-setting)
+      ekspod: sol_prov2
+
+  GetSecretInfo-2:
+    name: Get KeyCloak Secret infomation
+    needs: SetupKeycloak-2
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Get KeyCloak Secret infomation
+        id: secret_info
+        run: |
+          cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-servicer-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+          aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+          SECRET_INFO=$(kubectl logs job/themis2-${{ inputs.target_env }}-keycloak-setting)
+          CLIENT_ID_VALUE=$(echo  $SECRET_INFO | jq -r .CLIENT_ID_VALUE)
+          CLIENT_SECRET=$(echo  $SECRET_INFO | jq -r .CLIENT_SECRET)
+          echo "CLIENT_ID_VALUE=$CLIENT_ID_VALUE" >> $GITHUB_OUTPUT
+          echo "CLIENT_SECRET=$CLIENT_SECRET" >> $GITHUB_OUTPUT
+    outputs:
+      CLIENT_ID_VALUE: ${{ steps.secret_info.outputs.CLIENT_ID_VALUE }}
+      CLIENT_SECRET: ${{ steps.secret_info.outputs.CLIENT_SECRET }}
+
+  Provision-2:
+    name: Servicer Console Provision (Servicer2)
+    needs: GetSecretInfo-2
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: ServicerConsole
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.servicer_console_secret \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.servicer_console_dply \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.servicer_console_svc \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.servicer_console_tgb \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.servicer_console_network_policy
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l app=app,name=servicer-console --timeout=300s
+      eks-resource-to-restart: deployment/themis2-${{ inputs.target_env }}-servicer2-console
+      ekspod: sol_prov2
+      SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID: ${{ needs.GetSecretInfo-2.outputs.CLIENT_ID_VALUE }}
+      SERVICER_CONSOLE_KEYCLOAK_CLIENT_SECRET: ${{ needs.GetSecretInfo-2.outputs.CLIENT_SECRET }}

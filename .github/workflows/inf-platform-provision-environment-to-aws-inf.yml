@@ -1,0 +1,251 @@
+name: Provision environment to AWS (Platform-Inf)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  EKS-Provision:
+    name: EKS Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: EKS
+      target: -target=module.eks
+
+  ECR-Provision:
+    name: ECR Provision
+    needs: EKS-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: ECR
+      target: -target=module.ecr
+
+  WAF-Provision:
+    name: WAF Provision
+    needs: ECR-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: WAF
+      target: -target=module.waf
+
+  ALB-Provision:
+    name: ALB Provision
+    needs: WAF-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: ALB
+      target: -target=module.alb
+
+  Cloudfront-Provision:
+    name: Cloudfront Provision
+    needs: ALB-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: Cloudfront
+      target: -target=module.cloudfront
+
+  IoTCore-Provision:
+    name: IoTCore Provision
+    needs: Cloudfront-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: IoTCore-Provision
+      target: -target=module.iot_core
+      artifact-name: Certificates
+      artifact-path: |
+        themis2-inf-platform/modules/iot-core/certs/certificate.pem
+        themis2-inf-platform/modules/iot-core/certs/private-key.pem
+        themis2-inf-platform/modules/iot-core/certs/public-key.pem
+
+  Setup-DocumentDB:
+    name: Setup DocumentDB
+    needs: IoTCore-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-document-db.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  Setup-AuroraPostgreSQL:
+    name: Setup AuroraPostgreSQL
+    needs: Setup-DocumentDB
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-aurora-postgresql.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  ElastiCache-Provision:
+    name: ElastiCache Provision
+    needs: Setup-AuroraPostgreSQL
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: ElastiCache
+      target: -target=module.elasticache
+
+  Orion-Provision:
+    name: Setup FIWARE Orion
+    needs: ElastiCache-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-fiware-orion.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  Cygnus-Provision:
+    name: Setup FIWARE Cygnus
+    needs: Orion-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-fiware-cygnus.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  KongGateway-Provision:
+    name: KongGateway Provision
+    needs: Cygnus-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-kong-gateway.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+
+  ClusterAutoscaler-Provision:
+    name: ClusterAutoscaler Provision
+    needs: KongGateway-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: ClusterAutoscaler
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.cluster_autoscaler_sa \
+        -target=module.ekspod_infra.kubernetes_manifest.cluster_autoscaler_clrole \
+        -target=module.ekspod_infra.kubernetes_manifest.cluster_autoscaler_clrole_binding \
+        -target=module.ekspod_infra.kubernetes_manifest.cluster_autoscaler_role \
+        -target=module.ekspod_infra.kubernetes_manifest.cluster_autoscaler_role_binding \
+        -target=module.ekspod_infra.kubernetes_manifest.cluster_autoscaler_dply
+      health-check-command: |
+        set -e
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        
+        echo "Refreshing OpenTofu state to get latest outputs..."
+        tofu refresh -input=false -lock=false
+        
+        echo "Retrieving EKS cluster name..."
+        EKS_CLUSTER_NAME=$(tofu output -raw eks_cluster_name)
+        
+        if [ -z "$EKS_CLUSTER_NAME" ]; then
+          echo "ERROR: EKS cluster name is empty"
+          tofu output
+          exit 1
+        fi
+        
+        echo "EKS Cluster Name: ${EKS_CLUSTER_NAME}"
+        echo "Updating kubeconfig..."
+        aws eks update-kubeconfig --name "${EKS_CLUSTER_NAME}" --region ${{ vars.AWS_REGION }}
+        
+        echo "Waiting for pods to be ready in kube-system namespace..."
+        kubectl wait --for=condition=Ready pod --all -n kube-system --timeout=300s
+        
+        echo "Health check completed successfully!"
+
+  HorizontalPodAutoscale-Provision:
+    name: HorizontalPodAutoscale Provision
+    needs: ClusterAutoscaler-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: HorizontalPodAutoscale
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.eltres_agent_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.iotagent_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_cygnus_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_orion_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.keycloak_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.kong_gateway_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.docdb_realtime_notification_api_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.docdb_data_controller_api_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.iotagent_json_hpa \
+        -target=module.ekspod_infra.kubernetes_manifest.platform_console_hpa
+
+  MetricsServer-Provision:
+    name: MetricsServer Provision
+    needs: HorizontalPodAutoscale-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-metrics-server.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}

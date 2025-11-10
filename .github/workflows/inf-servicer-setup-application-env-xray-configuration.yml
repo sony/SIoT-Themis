@@ -1,0 +1,75 @@
+name: Setup application env (X-Ray Configuration)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  X-Ray-Configuration:
+    name: X-Ray Configuration
+    runs-on: ec2-iac-servicer-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Get EKS cluster name
+        id: eks-cluster-info
+        run: |
+          cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-servicer-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+          SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+          echo "SOL_PROV_EKS_CLUSTER_NAME=$SOL_PROV_EKS_CLUSTER_NAME" >> $GITHUB_OUTPUT
+          echo "SOL_PROV2_EKS_CLUSTER_NAME=$SOL_PROV2_EKS_CLUSTER_NAME" >> $GITHUB_OUTPUT
+      
+      - name: X_ray Setting (Servicer1)
+        uses: ./.github/actions/xray-setting
+        with:
+          eks-cluster-name: ${{ steps.eks-cluster-info.outputs.SOL_PROV_EKS_CLUSTER_NAME }}
+          nodejs-services: '"default/themis2-${{ inputs.target_env }}-batch-analyzer","default/themis2-${{ inputs.target_env }}-realtime-analyzer","default/themis2-${{ inputs.target_env }}-visualize-tracker"'
+
+      - name: Restart Services (Servicer1)
+        run: |
+          SOL_PROV_EKS_CLUSTER_NAME=${{ steps.eks-cluster-info.outputs.SOL_PROV_EKS_CLUSTER_NAME }}
+          aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+          echo "Restarting services"
+          kubectl rollout restart "deployment/themis2-${{ inputs.target_env }}-batch-analyzer"
+          kubectl rollout status "deployment/themis2-${{ inputs.target_env }}-batch-analyzer" --timeout 120s || exit 1
+          kubectl rollout restart "deployment/themis2-${{ inputs.target_env }}-realtime-analyzer"
+          kubectl rollout status "deployment/themis2-${{ inputs.target_env }}-realtime-analyzer" --timeout 120s || exit 1
+          kubectl rollout restart "deployment/themis2-${{ inputs.target_env }}-visualize-tracker"
+          kubectl rollout status "deployment/themis2-${{ inputs.target_env }}-visualize-tracker" --timeout 120s || exit 1
+          kubectl rollout restart deployment/amazon-cloudwatch-observability-controller-manager -n amazon-cloudwatch
+      
+      - name: X_ray Setting (Servicer2)
+        uses: ./.github/actions/xray-setting
+        with:
+          eks-cluster-name: ${{ steps.eks-cluster-info.outputs.SOL_PROV2_EKS_CLUSTER_NAME }}
+          nodejs-services: '"default/themis2-${{ inputs.target_env }}-batch-analyzer","default/themis2-${{ inputs.target_env }}-realtime-analyzer","default/themis2-${{ inputs.target_env }}-visualize-tracker"'
+
+      - name: Restart Services (Servicer2)
+        run: |
+          SOL_PROV2_EKS_CLUSTER_NAME=${{ steps.eks-cluster-info.outputs.SOL_PROV2_EKS_CLUSTER_NAME }}
+          aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+          echo "Restarting services"
+          kubectl rollout restart "deployment/themis2-${{ inputs.target_env }}-batch-analyzer"
+          kubectl rollout status "deployment/themis2-${{ inputs.target_env }}-batch-analyzer" --timeout 120s || exit 1
+          kubectl rollout restart "deployment/themis2-${{ inputs.target_env }}-realtime-analyzer"
+          kubectl rollout status "deployment/themis2-${{ inputs.target_env }}-realtime-analyzer" --timeout 120s || exit 1
+          kubectl rollout restart "deployment/themis2-${{ inputs.target_env }}-visualize-tracker"
+          kubectl rollout status "deployment/themis2-${{ inputs.target_env }}-visualize-tracker" --timeout 120s || exit 1
+          kubectl rollout restart deployment/amazon-cloudwatch-observability-controller-manager -n amazon-cloudwatch

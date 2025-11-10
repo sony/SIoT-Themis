@@ -1,0 +1,1972 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 7,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "max": 60,
+          "min": -20,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-green",
+                "value": null
+              },
+              {
+                "color": "dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\"data.sos\""
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#00000000",
+                      "value": null
+                    },
+                    {
+                      "color": "dark-blue",
+                      "value": 1
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 2
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 3
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 11,
+      "options": {
+        "basemap": {
+          "config": {
+            "showLabels": true,
+            "theme": "auto"
+          },
+          "name": "Layer 0",
+          "opacity": 0.8,
+          "tooltip": false,
+          "type": "osm-standard"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "field": "\"data.alert\"",
+                  "fixed": "dark-green"
+                },
+                "opacity": 1,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 18,
+                  "max": 15,
+                  "min": 2
+                },
+                "symbol": {
+                  "fixed": "img/icons/unicons/map-marker-alt.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "temperature",
+                  "fixed": "",
+                  "mode": "fixed"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 13,
+                  "offsetY": -6,
+                  "textAlign": "center",
+                  "textBaseline": "bottom"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "アイコン用",
+            "tooltip": true,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "fixed": "dark-blue"
+                },
+                "opacity": 0.2,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "field": "\"data.temperature\"",
+                  "fixed": 5,
+                  "max": 40,
+                  "min": 20
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "\"data.temperature\"",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 15,
+                  "offsetX": 0,
+                  "offsetY": -16,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "重畳表示用",
+            "tooltip": false,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "field": "\"data.sos\"",
+                  "fixed": "transparent"
+                },
+                "opacity": 1,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 6,
+                  "max": 10,
+                  "min": 5
+                },
+                "symbol": {
+                  "field": "",
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "text": {
+                  "fixed": "",
+                  "mode": "fixed"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "アラート用",
+            "tooltip": false,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": false,
+          "id": "fit",
+          "lastOnly": false,
+          "lat": 43.5693,
+          "layer": "アイコン用",
+          "lon": 143.311796,
+          "padding": 5,
+          "shared": false,
+          "zoom": 15
+        }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "channel": "stream/orion/ship",
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "filter": {
+            "fields": [
+              "time",
+              "\"data.temperature\"",
+              "latitude",
+              "longitude",
+              "\"data.alert\"",
+              "\"data.sos\"",
+              "id"
+            ]
+          },
+          "queryType": "measurements",
+          "refId": "A"
+        }
+      ],
+      "title": "realtime_map",
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": false,
+                "field": "time"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 20,
+          "min": 10,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "channel": "stream/orion/ship",
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "filter": {
+            "fields": [
+              "time",
+              "_rssi",
+              "id"
+            ]
+          },
+          "queryType": "measurements",
+          "refId": "A"
+        }
+      ],
+      "title": "realtime_rssi",
+      "transformations": [
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "id"
+            ],
+            "keepFields": false,
+            "naming": {
+              "asLabels": false
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 60,
+          "min": -20,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "channel": "stream/orion/ship",
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "filter": {
+            "fields": [
+              "time",
+              "\"data.temperature\"",
+              "id"
+            ]
+          },
+          "queryType": "measurements",
+          "refId": "A"
+        }
+      ],
+      "title": "realtime_temperature",
+      "transformations": [
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "id"
+            ],
+            "keepFields": false,
+            "naming": {
+              "asLabels": false
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "P9717D25956148E6E"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "max": 60,
+          "min": -20,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-green",
+                "value": null
+              },
+              {
+                "color": "dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sos"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#00000000",
+                      "value": null
+                    },
+                    {
+                      "color": "dark-blue",
+                      "value": 1
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 2
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 3
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 5,
+      "options": {
+        "basemap": {
+          "config": {
+            "showLabels": true,
+            "theme": "auto"
+          },
+          "name": "Layer 0",
+          "opacity": 0.8,
+          "tooltip": false,
+          "type": "osm-standard"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "arrow": 1,
+              "style": {
+                "color": {
+                  "fixed": "transparent"
+                },
+                "lineWidth": 2,
+                "opacity": 0.8,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 3,
+                  "max": 15,
+                  "min": 2
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "99531用"
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "99531用",
+            "opacity": 1,
+            "tooltip": true,
+            "type": "route"
+          },
+          {
+            "config": {
+              "arrow": 1,
+              "style": {
+                "color": {
+                  "fixed": "#000000"
+                },
+                "lineWidth": 2,
+                "opacity": 1,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 3,
+                  "max": 15,
+                  "min": 2
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/cross.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "",
+                  "fixed": "7",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "99532用"
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "99532用",
+            "opacity": 1,
+            "tooltip": false,
+            "type": "route"
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "field": "alert",
+                  "fixed": "dark-green"
+                },
+                "opacity": 1,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 18,
+                  "max": 15,
+                  "min": 2
+                },
+                "symbol": {
+                  "fixed": "img/icons/unicons/map-marker-alt.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "temperature",
+                  "fixed": "",
+                  "mode": "fixed"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 13,
+                  "offsetY": -6,
+                  "textAlign": "center",
+                  "textBaseline": "bottom"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "アイコン用",
+            "tooltip": true,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "field": "sos",
+                  "fixed": "transparent"
+                },
+                "opacity": 1,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 6,
+                  "max": 10,
+                  "min": 5
+                },
+                "symbol": {
+                  "field": "",
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "left",
+                  "vertical": "top"
+                },
+                "text": {
+                  "fixed": "",
+                  "mode": "fixed"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "全表示用"
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "アラート用",
+            "tooltip": false,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "fixed": "dark-blue"
+                },
+                "opacity": 0.2,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "field": "temperature",
+                  "fixed": 5,
+                  "max": 40,
+                  "min": 20
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "temperature",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 15,
+                  "offsetX": 0,
+                  "offsetY": -16,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "全表示用"
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "重畳表示用",
+            "tooltip": false,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": false,
+          "id": "fit",
+          "lastOnly": false,
+          "lat": 43.5693,
+          "layer": "アイコン用",
+          "lon": 143.311796,
+          "padding": 5,
+          "shared": false,
+          "zoom": 15
+        }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "id",
+              "text": "nodeId",
+              "type": "number"
+            },
+            {
+              "selector": "timestamp",
+              "text": "",
+              "type": "timestamp"
+            },
+            {
+              "selector": "data.temperature",
+              "text": "temperature",
+              "type": "number"
+            },
+            {
+              "selector": "location.coordinates[0]",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "location.coordinates[1]",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "data.alert",
+              "text": "alert",
+              "type": "number"
+            },
+            {
+              "selector": "data.sos",
+              "text": "sos",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "P9717D25956148E6E"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "refId": "全表示用",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "url": "/search",
+          "url_options": {
+            "data": "",
+            "headers": [],
+            "method": "GET",
+            "params": [
+              {
+                "key": "type",
+                "value": "ship"
+              },
+              {
+                "key": "q",
+                "value": "${key1}${operator1}${value1};${key2}${operator2}${value2};${key3}${operator3}${value3};timestamp>=${__from:date:iso};timestamp<=${__to:date:iso}"
+              },
+              {
+                "key": "geometry",
+                "value": "point"
+              },
+              {
+                "key": "georel",
+                "value": "near;maxDistance:${radius}"
+              },
+              {
+                "key": "geoattr",
+                "value": "location"
+              },
+              {
+                "key": "coords",
+                "value": "${latitude},${longitude}"
+              }
+            ]
+          }
+        },
+        {
+          "columns": [
+            {
+              "selector": "id",
+              "text": "nodeId",
+              "type": "number"
+            },
+            {
+              "selector": "timestamp",
+              "text": "",
+              "type": "timestamp"
+            },
+            {
+              "selector": "data.temperature",
+              "text": "temperature",
+              "type": "number"
+            },
+            {
+              "selector": "location.coordinates[0]",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "location.coordinates[1]",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "data.alert",
+              "text": "alert",
+              "type": "number"
+            },
+            {
+              "selector": "data.sos",
+              "text": "sos",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "P9717D25956148E6E"
+          },
+          "filters": [
+            {
+              "field": "nodeId",
+              "operator": "==",
+              "value": [
+                "99531"
+              ]
+            }
+          ],
+          "format": "table",
+          "global_query_id": "",
+          "hide": false,
+          "refId": "99531用",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "url": "/search",
+          "url_options": {
+            "data": "",
+            "headers": [],
+            "method": "GET",
+            "params": [
+              {
+                "key": "type",
+                "value": "ship"
+              },
+              {
+                "key": "q",
+                "value": "${key1}${operator1}${value1};${key2}${operator2}${value2};${key3}${operator3}${value3};timestamp>=${__from:date:iso};timestamp<=${__to:date:iso}"
+              },
+              {
+                "key": "geometry",
+                "value": "point"
+              },
+              {
+                "key": "georel",
+                "value": "near;maxDistance:${radius}"
+              },
+              {
+                "key": "geoattr",
+                "value": "location"
+              },
+              {
+                "key": "coords",
+                "value": "${latitude},${longitude}"
+              }
+            ]
+          }
+        },
+        {
+          "columns": [
+            {
+              "selector": "id",
+              "text": "nodeId",
+              "type": "number"
+            },
+            {
+              "selector": "timestamp",
+              "text": "",
+              "type": "timestamp"
+            },
+            {
+              "selector": "data.temperature",
+              "text": "temperature",
+              "type": "number"
+            },
+            {
+              "selector": "location.coordinates[0]",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "location.coordinates[1]",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "data.alert",
+              "text": "alert",
+              "type": "number"
+            },
+            {
+              "selector": "data.sos",
+              "text": "sos",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "P9717D25956148E6E"
+          },
+          "filters": [
+            {
+              "field": "nodeId",
+              "operator": "==",
+              "value": [
+                "99532"
+              ]
+            }
+          ],
+          "format": "table",
+          "global_query_id": "",
+          "hide": false,
+          "refId": "99532用",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "url": "/search",
+          "url_options": {
+            "data": "",
+            "headers": [],
+            "method": "GET",
+            "params": [
+              {
+                "key": "type",
+                "value": "ship"
+              },
+              {
+                "key": "q",
+                "value": "${key1}${operator1}${value1};${key2}${operator2}${value2};${key3}${operator3}${value3};timestamp>=${__from:date:iso};timestamp<=${__to:date:iso}"
+              },
+              {
+                "key": "geometry",
+                "value": "point"
+              },
+              {
+                "key": "georel",
+                "value": "near;maxDistance:${radius}"
+              },
+              {
+                "key": "geoattr",
+                "value": "location"
+              },
+              {
+                "key": "coords",
+                "value": "${latitude},${longitude}"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "map",
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": false,
+                "field": "timestamp"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "P9717D25956148E6E"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 20,
+          "min": 10,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "id",
+              "text": "",
+              "type": "number"
+            },
+            {
+              "selector": "timestamp",
+              "text": "",
+              "type": "timestamp"
+            },
+            {
+              "selector": "_rssi",
+              "text": "rssi",
+              "type": "number"
+            }
+          ],
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "url": "/search",
+          "url_options": {
+            "data": "",
+            "headers": [],
+            "method": "GET",
+            "params": [
+              {
+                "key": "type",
+                "value": "ship"
+              },
+              {
+                "key": "q",
+                "value": "${key1}${operator1}${value1};${key2}${operator2}${value2};${key3}${operator3}${value3};timestamp>=${__from:date:iso};timestamp<=${__to:date:iso}"
+              },
+              {
+                "key": "geometry",
+                "value": "point"
+              },
+              {
+                "key": "georel",
+                "value": "near;maxDistance:${radius}"
+              },
+              {
+                "key": "geoattr",
+                "value": "location"
+              },
+              {
+                "key": "coords",
+                "value": "${latitude},${longitude}"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "rssi",
+      "transformations": [
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "id"
+            ],
+            "keepFields": false,
+            "naming": {
+              "asLabels": false
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "P9717D25956148E6E"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 60,
+          "min": -20,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "id",
+              "text": "",
+              "type": "number"
+            },
+            {
+              "selector": "timestamp",
+              "text": "",
+              "type": "timestamp"
+            },
+            {
+              "selector": "data.temperature",
+              "text": "temperature",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "P9717D25956148E6E"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "refId": "all",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "url": "/search",
+          "url_options": {
+            "data": "",
+            "headers": [],
+            "method": "GET",
+            "params": [
+              {
+                "key": "type",
+                "value": "ship"
+              },
+              {
+                "key": "q",
+                "value": "${key1}${operator1}${value1};${key2}${operator2}${value2};${key3}${operator3}${value3};timestamp>=${__from:date:iso};timestamp<=${__to:date:iso}"
+              },
+              {
+                "key": "geometry",
+                "value": "point"
+              },
+              {
+                "key": "georel",
+                "value": "near;maxDistance:${radius}"
+              },
+              {
+                "key": "geoattr",
+                "value": "location"
+              },
+              {
+                "key": "coords",
+                "value": "${latitude},${longitude}"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "temperature",
+      "transformations": [
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": [
+              "id"
+            ],
+            "keepFields": false,
+            "naming": {
+              "asLabels": false
+            }
+          }
+        }
+      ],
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 40,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "description": "いずれかを選択してください",
+        "label": "キー1",
+        "name": "key1",
+        "options": [
+          {
+            "selected": true,
+            "text": "指定なし",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "gnss",
+            "value": "data.gnss"
+          },
+          {
+            "selected": false,
+            "text": "height",
+            "value": "data.height"
+          },
+          {
+            "selected": false,
+            "text": "speed",
+            "value": "data.speed"
+          },
+          {
+            "selected": false,
+            "text": "course",
+            "value": "data.course"
+          },
+          {
+            "selected": false,
+            "text": "adc",
+            "value": "adc"
+          },
+          {
+            "selected": false,
+            "text": "temperature",
+            "value": "data.temperature"
+          },
+          {
+            "selected": false,
+            "text": "sos",
+            "value": "data.sos"
+          },
+          {
+            "selected": false,
+            "text": "userdata",
+            "value": "data.userdata"
+          },
+          {
+            "selected": false,
+            "text": "alert",
+            "value": "data.alert"
+          },
+          {
+            "selected": false,
+            "text": "serviceId",
+            "value": "serviceTag.serviceId"
+          }
+        ],
+        "query": "指定なし :  , gnss : data.gnss, height : data.height, speed : data.speed, course : data.course, adc : adc, temperature : data.temperature, sos : data.sos, userdata : data.userdata, alert : data.alert, serviceId : serviceTag.serviceId",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "==",
+          "value": "=="
+        },
+        "description": "演算子を選択してください",
+        "label": "演算子1",
+        "name": "operator1",
+        "options": [
+          {
+            "selected": true,
+            "text": "==",
+            "value": "=="
+          },
+          {
+            "selected": false,
+            "text": ">",
+            "value": ">"
+          },
+          {
+            "selected": false,
+            "text": ">=",
+            "value": ">="
+          },
+          {
+            "selected": false,
+            "text": "<",
+            "value": "<"
+          },
+          {
+            "selected": false,
+            "text": "<=",
+            "value": "<="
+          }
+        ],
+        "query": "==,>,>=,<,<=",
+        "type": "custom"
+      },
+      {
+        "allowCustomValue": true,
+        "current": {
+          "text": "0",
+          "value": "0"
+        },
+        "description": "値を入力してください",
+        "includeAll": false,
+        "label": "値1",
+        "name": "value1",
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "query": "0",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "description": "いずれかを選択してください",
+        "label": "キー2",
+        "name": "key2",
+        "options": [
+          {
+            "selected": true,
+            "text": "指定なし",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "gnss",
+            "value": "data.gnss"
+          },
+          {
+            "selected": false,
+            "text": "height",
+            "value": "data.height"
+          },
+          {
+            "selected": false,
+            "text": "speed",
+            "value": "data.speed"
+          },
+          {
+            "selected": false,
+            "text": "course",
+            "value": "data.course"
+          },
+          {
+            "selected": false,
+            "text": "adc",
+            "value": "adc"
+          },
+          {
+            "selected": false,
+            "text": "temperature",
+            "value": "data.temperature"
+          },
+          {
+            "selected": false,
+            "text": "sos",
+            "value": "data.sos"
+          },
+          {
+            "selected": false,
+            "text": "userdata",
+            "value": "data.userdata"
+          },
+          {
+            "selected": false,
+            "text": "alert",
+            "value": "data.alert"
+          },
+          {
+            "selected": false,
+            "text": "serviceId",
+            "value": "serviceTag.serviceId"
+          }
+        ],
+        "query": "指定なし :  , gnss : data.gnss, height : data.height, speed : data.speed, course : data.course, adc : adc, temperature : data.temperature, sos : data.sos, userdata : data.userdata, alert : data.alert, serviceId : serviceTag.serviceId",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "==",
+          "value": "=="
+        },
+        "description": "演算子を選択してください",
+        "label": "演算子2",
+        "name": "operator2",
+        "options": [
+          {
+            "selected": true,
+            "text": "==",
+            "value": "=="
+          },
+          {
+            "selected": false,
+            "text": ">",
+            "value": ">"
+          },
+          {
+            "selected": false,
+            "text": ">=",
+            "value": ">="
+          },
+          {
+            "selected": false,
+            "text": "<",
+            "value": "<"
+          },
+          {
+            "selected": false,
+            "text": "<=",
+            "value": "<="
+          }
+        ],
+        "query": "==,>,>=,<,<=",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "0",
+          "value": "0"
+        },
+        "description": "値を入力してください",
+        "label": "値2",
+        "name": "value2",
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "query": "0",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "description": "いずれかを選択してください",
+        "label": "キー3",
+        "name": "key3",
+        "options": [
+          {
+            "selected": true,
+            "text": "指定なし",
+            "value": ""
+          },
+          {
+            "selected": false,
+            "text": "gnss",
+            "value": "data.gnss"
+          },
+          {
+            "selected": false,
+            "text": "height",
+            "value": "data.height"
+          },
+          {
+            "selected": false,
+            "text": "speed",
+            "value": "data.speed"
+          },
+          {
+            "selected": false,
+            "text": "course",
+            "value": "data.course"
+          },
+          {
+            "selected": false,
+            "text": "adc",
+            "value": "adc"
+          },
+          {
+            "selected": false,
+            "text": "temperature",
+            "value": "data.temperature"
+          },
+          {
+            "selected": false,
+            "text": "sos",
+            "value": "data.sos"
+          },
+          {
+            "selected": false,
+            "text": "userdata",
+            "value": "data.userdata"
+          },
+          {
+            "selected": false,
+            "text": "alert",
+            "value": "data.alert"
+          },
+          {
+            "selected": false,
+            "text": "serviceId",
+            "value": "serviceTag.serviceId"
+          }
+        ],
+        "query": "指定なし :  , gnss : data.gnss, height : data.height, speed : data.speed, course : data.course, adc : adc, temperature : data.temperature, sos : data.sos, userdata : data.userdata, alert : data.alert, serviceId : serviceTag.serviceId",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "==",
+          "value": "=="
+        },
+        "description": "演算子を選択してください",
+        "label": "演算子3",
+        "name": "operator3",
+        "options": [
+          {
+            "selected": true,
+            "text": "==",
+            "value": "=="
+          },
+          {
+            "selected": false,
+            "text": ">",
+            "value": ">"
+          },
+          {
+            "selected": false,
+            "text": ">=",
+            "value": ">="
+          },
+          {
+            "selected": false,
+            "text": "<",
+            "value": "<"
+          },
+          {
+            "selected": false,
+            "text": "<=",
+            "value": "<="
+          }
+        ],
+        "query": "==,>,>=,<,<=",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "0",
+          "value": "0"
+        },
+        "description": "値を入力してください",
+        "label": "値3",
+        "name": "value3",
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "query": "0",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "20037500",
+          "value": "20037500"
+        },
+        "description": "半径（メートル）を入力してください。",
+        "label": "半径",
+        "name": "radius",
+        "options": [
+          {
+            "selected": true,
+            "text": "指定なし",
+            "value": "20037500"
+          }
+        ],
+        "query": "指定なし : 20037500",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "0",
+          "value": "0"
+        },
+        "description": "中心となる経度を入力してください。",
+        "label": "中心経度",
+        "name": "longitude",
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "query": "0",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "0",
+          "value": "0"
+        },
+        "description": "中心となる緯度を入力してください。",
+        "label": "中心緯度",
+        "name": "latitude",
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "query": "0",
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "2025-01-01T00:00:00.000Z",
+    "to": "2025-01-31T23:59:59.999Z"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Sensor Data",
+  "uid": "deczltg0o5r0ga",
+  "version": 49,
+  "weekStart": ""
+}

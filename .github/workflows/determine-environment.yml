@@ -1,0 +1,32 @@
+name: Determine Environment
+
+on:
+  workflow_call:
+    outputs:
+      environment:
+        description: "The determined environment"
+        value: ${{ jobs.determine-environment.outputs.environment }}
+
+jobs:
+  determine-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+    steps:
+      - name: Determine environment
+        id: env
+        run: |
+          # For pull requests, use head_ref; for pushes, use ref
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH_REF="${{ github.head_ref }}"
+          else
+            BRANCH_REF="${{ github.ref }}"
+          fi
+
+          if [[ "$BRANCH_REF" == "main" || "$BRANCH_REF" == "refs/heads/main" ]]; then
+            echo "environment=prd" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH_REF" == release/* || "$BRANCH_REF" == refs/heads/release/* ]]; then
+            echo "environment=stg" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi

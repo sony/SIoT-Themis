@@ -1,0 +1,122 @@
+name: Provision environment to AWS (Servicer-Inf)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  EKS-Provision:
+    name: EKS Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: EKS
+      target: -target=module.eks
+      target_env: ${{ inputs.target_env }}
+
+  ECR-Provision:
+    name: ECR Provision
+    needs: EKS-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: ECR
+      target: -target=module.ecr
+      target_env: ${{ inputs.target_env }}
+
+  ALB-Provision:
+    name: ALB Provision
+    needs: ECR-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: ALB
+      target: -target=module.alb
+      target_env: ${{ inputs.target_env }}
+
+  Cloudfront-Provision:
+    name: Cloudfront Provision
+    needs: ALB-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: Cloudfront
+      target: -target=module.cloudfront
+      target_env: ${{ inputs.target_env }}
+
+  MetricsServer-Provision:
+    name: Setup application env (Metrics Server)
+    needs: Cloudfront-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-metrics-server.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+
+  ClusterAutoscaler-Provision:
+    name: ClusterAutoscaler Provision
+    needs: MetricsServer-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: ClusterAutoscaler
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.cluster_autoscaler_sa \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.cluster_autoscaler_clrole \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.cluster_autoscaler_clrole_binding \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.cluster_autoscaler_role \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.cluster_autoscaler_role_binding \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.cluster_autoscaler_dply \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.cluster_autoscaler_sa \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.cluster_autoscaler_clrole \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.cluster_autoscaler_clrole_binding \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.cluster_autoscaler_role \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.cluster_autoscaler_role_binding \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.cluster_autoscaler_dply
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod --all -n kube-system --timeout=300s
+        aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod --all -n kube-system --timeout=300s
+      target_env: ${{ inputs.target_env }}
+  
+  BatchAnalyzer-Provision:
+    name: Setup application env (Batch Analyzer)
+    needs: ClusterAutoscaler-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-batch-analyzer.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit

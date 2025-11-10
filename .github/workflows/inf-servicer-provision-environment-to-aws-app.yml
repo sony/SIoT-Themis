@@ -1,0 +1,142 @@
+name: Provision environment to AWS (Servicer-App)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  PostgreSQL-Provision:
+    name: Setup application env (PostgreSQL)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-postgresql.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+
+  PostgreSQLSetting-Provision:
+    name: Setup application env (PostgreSQL Setting)
+    needs: PostgreSQL-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-postgresql-setting.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  Keycloak-Provision:
+    name: Setup application env (Keycloak)
+    needs: PostgreSQLSetting-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-keycloak.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+
+  RealtimeAnalyzer-Provision:
+    name: Setup application env (Realtime Analyzer)
+    needs: Keycloak-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-realtime-analyzer.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  VisualizeTracker-Provision:
+    name: Setup application env (Visualize Tracker)
+    needs: RealtimeAnalyzer-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-visualize-tracker.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  RealtimeTransformationApi-Provision:
+    name: Setup application env (Realtime Transformation Api)
+    needs: VisualizeTracker-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-realtime-transformation-api.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  DataFilteringApi-Provision:
+    name: Setup application env (Data Filtering API)
+    needs: RealtimeTransformationApi-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-data-filtering-api.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  Grafana-Provision:
+    name: Setup application env (Grafana)
+    needs: DataFilteringApi-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-grafana.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  ServicerConsole-Provision:
+    name: Setup application env (Servicer Console)
+    needs: Grafana-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-servicer-console.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  Canary-Provision:
+    name: Canary Provision
+    needs: ServicerConsole-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: Canary
+      target: -target=module.canary
+      target_env: ${{ inputs.target_env }}
+
+  X-Ray-Configuration:
+    name: Setup application env (X-Ray Configuration)
+    needs: Canary-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-setup-application-env-xray-configuration.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}

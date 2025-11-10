@@ -1,0 +1,14 @@
+{
+  "name": "schema",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0"
+  }
+}

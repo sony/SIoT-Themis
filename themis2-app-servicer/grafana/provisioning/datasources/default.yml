@@ -1,0 +1,21 @@
+apiVersion: 1
+datasources:
+  - id: 1
+    uid: "P9717D25956148E6E"
+    orgId: 1
+    name: "data-controller-api"
+    editable: ${EDITABLE_PROVISIONED_RESOURCE}
+    type: "yesoreyeram-infinity-datasource"
+    url: ${DATA_CONTROLLER_API}
+    basicAuth: false
+    basicAuthUser: "admin"
+    isDefault: true
+    jsonData:
+      allowedHosts:
+        - ${DATA_CONTROLLER_API}
+      apiKeyKey: "Authorization"
+      auth_method: "apiKey"
+    readOnly: false
+    apiVersion: ""
+    secureJsonData:
+      apiKeyValue: ${BACKEND_API_KEY}

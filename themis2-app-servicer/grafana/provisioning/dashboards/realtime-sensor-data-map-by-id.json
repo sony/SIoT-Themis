@@ -1,0 +1,473 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 8,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              }
+            },
+            "mappings": [],
+            "max": 60,
+            "min": -20,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "dark-green",
+                  "value": null
+                },
+                {
+                  "color": "dark-red",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "\"data.sos\""
+              },
+              "properties": [
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#00000000",
+                        "value": null
+                      },
+                      {
+                        "color": "dark-blue",
+                        "value": 1
+                      },
+                      {
+                        "color": "#EAB839",
+                        "value": 2
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 3
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 10,
+        "options": {
+          "basemap": {
+            "config": {
+              "showLabels": true,
+              "theme": "auto"
+            },
+            "name": "Layer 0",
+            "opacity": 0.8,
+            "tooltip": false,
+            "type": "osm-standard"
+          },
+          "controls": {
+            "mouseWheelZoom": true,
+            "showAttribution": true,
+            "showDebug": false,
+            "showMeasure": false,
+            "showScale": false,
+            "showZoom": true
+          },
+          "layers": [
+            {
+              "config": {
+                "arrow": 1,
+                "style": {
+                  "color": {
+                    "fixed": "transparent"
+                  },
+                  "lineWidth": 2,
+                  "opacity": 0.8,
+                  "rotation": {
+                    "fixed": 0,
+                    "max": 360,
+                    "min": -360,
+                    "mode": "mod"
+                  },
+                  "size": {
+                    "fixed": 3,
+                    "max": 15,
+                    "min": 2
+                  },
+                  "symbol": {
+                    "fixed": "img/icons/marker/circle.svg",
+                    "mode": "fixed"
+                  },
+                  "symbolAlign": {
+                    "horizontal": "center",
+                    "vertical": "center"
+                  },
+                  "textConfig": {
+                    "fontSize": 12,
+                    "offsetX": 0,
+                    "offsetY": 0,
+                    "textAlign": "center",
+                    "textBaseline": "middle"
+                  }
+                }
+              },
+              "location": {
+                "mode": "auto"
+              },
+              "name": "99531用",
+              "opacity": 1,
+              "tooltip": true,
+              "type": "route"
+            },
+            {
+              "config": {
+                "arrow": 1,
+                "style": {
+                  "color": {
+                    "fixed": "#000000"
+                  },
+                  "lineWidth": 2,
+                  "opacity": 1,
+                  "rotation": {
+                    "fixed": 0,
+                    "max": 360,
+                    "min": -360,
+                    "mode": "mod"
+                  },
+                  "size": {
+                    "fixed": 3,
+                    "max": 15,
+                    "min": 2
+                  },
+                  "symbol": {
+                    "fixed": "img/icons/marker/cross.svg",
+                    "mode": "fixed"
+                  },
+                  "symbolAlign": {
+                    "horizontal": "center",
+                    "vertical": "center"
+                  },
+                  "text": {
+                    "field": "",
+                    "fixed": "7",
+                    "mode": "field"
+                  },
+                  "textConfig": {
+                    "fontSize": 12,
+                    "offsetX": 0,
+                    "offsetY": 0,
+                    "textAlign": "center",
+                    "textBaseline": "middle"
+                  }
+                }
+              },
+              "location": {
+                "mode": "auto"
+              },
+              "name": "99532用",
+              "opacity": 1,
+              "tooltip": false,
+              "type": "route"
+            },
+            {
+              "config": {
+                "showLegend": false,
+                "style": {
+                  "color": {
+                    "fixed": "dark-blue"
+                  },
+                  "opacity": 0.2,
+                  "rotation": {
+                    "fixed": 0,
+                    "max": 360,
+                    "min": -360,
+                    "mode": "mod"
+                  },
+                  "size": {
+                    "field": "\"data.temperature\"",
+                    "fixed": 5,
+                    "max": 40,
+                    "min": 20
+                  },
+                  "symbol": {
+                    "fixed": "img/icons/marker/circle.svg",
+                    "mode": "fixed"
+                  },
+                  "symbolAlign": {
+                    "horizontal": "center",
+                    "vertical": "center"
+                  },
+                  "text": {
+                    "field": "\"data.temperature\"",
+                    "fixed": "",
+                    "mode": "field"
+                  },
+                  "textConfig": {
+                    "fontSize": 15,
+                    "offsetX": 0,
+                    "offsetY": -16,
+                    "textAlign": "center",
+                    "textBaseline": "middle"
+                  }
+                }
+              },
+              "location": {
+                "mode": "auto"
+              },
+              "name": "重畳表示用",
+              "tooltip": false,
+              "type": "markers"
+            },
+            {
+              "config": {
+                "showLegend": false,
+                "style": {
+                  "color": {
+                    "field": "\"data.alert\"",
+                    "fixed": "dark-green"
+                  },
+                  "opacity": 1,
+                  "rotation": {
+                    "fixed": 0,
+                    "max": 360,
+                    "min": -360,
+                    "mode": "mod"
+                  },
+                  "size": {
+                    "fixed": 18,
+                    "max": 15,
+                    "min": 2
+                  },
+                  "symbol": {
+                    "fixed": "img/icons/unicons/map-marker-alt.svg",
+                    "mode": "fixed"
+                  },
+                  "symbolAlign": {
+                    "horizontal": "center",
+                    "vertical": "center"
+                  },
+                  "text": {
+                    "field": "temperature",
+                    "fixed": "",
+                    "mode": "fixed"
+                  },
+                  "textConfig": {
+                    "fontSize": 12,
+                    "offsetX": 13,
+                    "offsetY": -6,
+                    "textAlign": "center",
+                    "textBaseline": "bottom"
+                  }
+                }
+              },
+              "location": {
+                "mode": "auto"
+              },
+              "name": "アイコン用",
+              "tooltip": true,
+              "type": "markers"
+            },
+            {
+              "config": {
+                "showLegend": false,
+                "style": {
+                  "color": {
+                    "field": "\"data.sos\"",
+                    "fixed": "transparent"
+                  },
+                  "opacity": 1,
+                  "rotation": {
+                    "fixed": 0,
+                    "max": 360,
+                    "min": -360,
+                    "mode": "mod"
+                  },
+                  "size": {
+                    "fixed": 6,
+                    "max": 10,
+                    "min": 5
+                  },
+                  "symbol": {
+                    "field": "",
+                    "fixed": "img/icons/marker/circle.svg",
+                    "mode": "fixed"
+                  },
+                  "symbolAlign": {
+                    "horizontal": "left",
+                    "vertical": "top"
+                  },
+                  "text": {
+                    "fixed": "",
+                    "mode": "fixed"
+                  },
+                  "textConfig": {
+                    "fontSize": 12,
+                    "offsetX": 0,
+                    "offsetY": 0,
+                    "textAlign": "center",
+                    "textBaseline": "middle"
+                  }
+                }
+              },
+              "location": {
+                "mode": "auto"
+              },
+              "name": "アラート用",
+              "tooltip": false,
+              "type": "markers"
+            }
+          ],
+          "tooltip": {
+            "mode": "details"
+          },
+          "view": {
+            "allLayers": false,
+            "id": "fit",
+            "lastOnly": false,
+            "lat": 43.5693,
+            "layer": "アイコン用",
+            "lon": 143.311796,
+            "padding": 5,
+            "shared": false,
+            "zoom": 15
+          }
+        },
+        "pluginVersion": "11.5.1",
+        "targets": [
+          {
+            "channel": "stream/orion/ship",
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
+            "filter": {
+              "fields": [
+                "time",
+                "\"data.temperature\"",
+                "latitude",
+                "longitude",
+                "\"data.alert\"",
+                "\"data.sos\"",
+                "id"
+              ]
+            },
+            "queryType": "measurements",
+            "refId": "A"
+          }
+        ],
+        "title": "realtime_map_by_id",
+        "transformations": [
+          {
+            "id": "sortBy",
+            "options": {
+              "fields": {},
+              "sort": [
+                {
+                  "desc": false,
+                  "field": "time"
+                }
+              ]
+            }
+          },
+          {
+            "id": "filterByValue",
+            "options": {
+              "filters": [
+                {
+                  "config": {
+                    "id": "equal",
+                    "options": {
+                      "value": "${nodeId}"
+                    }
+                  },
+                  "fieldName": "id"
+                }
+              ],
+              "match": "any",
+              "type": "include"
+            }
+          }
+        ],
+        "type": "geomap"
+      }
+    ],
+    "preload": false,
+    "refresh": "",
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "99531",
+            "value": "99531"
+          },
+          "description": "リアルタイム地図表示したいIDを入力してください。",
+          "label": "realtime_map_by_id表示用ID",
+          "name": "nodeId",
+          "options": [
+            {
+              "selected": false,
+              "text": "0",
+              "value": "0"
+            }
+          ],
+          "query": "0",
+          "type": "custom"
+        }
+      ]
+    },
+    "time": {
+      "from": "2025-01-01T00:00:00.000Z",
+      "to": "2025-01-31T23:59:59.999Z"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Realtime Sensor Data Map By ID",
+    "uid": "deczltg0o5r0gb",
+    "version": 3,
+    "weekStart": ""
+  }

@@ -1,0 +1,41 @@
+name: Application Signals(X-Ray)設定
+description: Application Signals(X-Ray)を利用し、トレース情報を収集するための設定を行う
+inputs:
+  eks-cluster-name:
+    required: true
+    description: EKSクラスター名
+  nodejs-services:
+    required: true
+    description: Application Signals(X-Ray)を有効にするNodeJSサービス一覧。例："default/themis2-tmp1-batch-analyzer","default/themis2-tmp1-realtime-analyzer","default/themis2-tmp1-visualize-tracker"
+
+runs:
+  using: composite
+  steps:
+    - name: Update amazon-cloudwatch-observability add-on
+      shell: bash
+      run: |
+        echo "Updating to enable services: ${{ inputs.nodejs-services }}"
+        aws eks update-addon \
+          --cluster-name "${{ inputs.eks-cluster-name }}" \
+          --addon-name amazon-cloudwatch-observability \
+          --resolve-conflicts OVERWRITE  \
+          --configuration-values '{"agent":{"config":{"logs":{"metrics_collected":{"application_signals":{},"kubernetes":{"accelerated_compute_metrics":false,"enhanced_container_insights":true}}},"traces":{"traces_collected":{"application_signals":{}}}}},"manager":{"applicationSignals":{"autoMonitor":{"monitorAllServices":false,"restartPods":false,"languages":[],"exclude":{"java":{"namespaces":[],"deployments":[],"daemonsets":[],"statefulsets":[]},"python":{"namespaces":[],"deployments":[],"daemonsets":[],"statefulsets":[]},"dotnet":{"namespaces":[],"deployments":[],"daemonsets":[],"statefulsets":[]},"nodejs":{"namespaces":[],"deployments":[],"daemonsets":[],"statefulsets":[]}},"customSelector":{"java":{"namespaces":[],"deployments":[],"daemonsets":[],"statefulsets":[]},"python":{"namespaces":[],"deployments":[],"daemonsets":[],"statefulsets":[]},"dotnet":{"namespaces":[],"deployments":[],"daemonsets":[],"statefulsets":[]},"nodejs":{"namespaces":[],"deployments":[${{ inputs.nodejs-services }}],"daemonsets":[],"statefulsets":[]}}}}}}'
+
+        echo "Waiting to finish updating"
+        for i in {1..30}; do
+          STATUS=$(aws eks describe-addon \
+                    --cluster-name "${{ inputs.eks-cluster-name }}" \
+                    --addon-name amazon-cloudwatch-observability \
+                    --query 'addon.status' \
+                    --output text)
+          if [ "$STATUS" = "ACTIVE" ]; then
+            echo "Add-on update complete"
+            exit 0
+          elif [ "$STATUS" != "UPDATING" ]; then
+            echo "Add-on update failed"
+            exit 1
+          fi
+          sleep 10
+        done
+        echo "Add-on update timed out after 5 minutes"
+        exit 1

@@ -1,0 +1,19 @@
+{
+    "version": 3,
+    "dataPayload": "WILL_BE_CHANGED_TO_DATA",
+    "lfourId": 1,
+    "txTime": 0,
+    "principalId": "CHANGE_TO_IoT_Core_PRINCIPAL_ID",
+    "rssi": 16,
+    "serviceTag": {
+        "serviceId": "00000184cb"
+    },
+    "minver": 0,
+    "rssi_dbm": -65.214,
+    "snr": 13.98,
+    "foffset": -16.4,
+    "delay": 18.3,
+    "nwpId": 1001,
+    "stId": 1,
+    "stDevId": 1
+}

@@ -1,0 +1,4 @@
+.terraform
+.terraform.lock.hcl
+certs/
+canary_scripts/

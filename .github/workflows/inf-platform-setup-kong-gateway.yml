@@ -1,0 +1,34 @@
+name: Provision Aurora PostgreSQL
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  KongGateway-Provision:
+    name: KongGateway Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: KongGateway
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.konggateway_sa \
+        -target=module.ekspod_infra.kubernetes_manifest.konggateway_proxy_svc \
+        -target=module.ekspod_infra.kubernetes_manifest.konggateway_admin_svc \
+        -target=module.ekspod_infra.kubernetes_manifest.konggateway_configmap \
+        -target=module.ekspod_infra.kubernetes_manifest.konggateway_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.konggateway_tgb \
+        -target=module.ekspod_infra.kubernetes_manifest.postgresql_secret
+      health-check-command: |
+          cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+          EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+          aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+          kubectl wait --for=condition=Ready pod -l app=external-kong --timeout=300s

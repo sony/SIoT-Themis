@@ -1,0 +1,33 @@
+name: FIWARE-IoTAgent-JSON Provision
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  FIWARE-IoTAgent-JSON-Provision:
+    name: FIWARE-IoTAgent-JSON-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: FIWARE-IoTAgent-JSON
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_iotagent_json_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_iotagent_json_svc \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_iotagent_json_tgb \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_iotagent_auth_host_secret \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_iotagent_json_certs_secret \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_iotagent_json_network_policy
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l component=iotagent-json,app=fiware --timeout=300s

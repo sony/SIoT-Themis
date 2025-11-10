@@ -1,0 +1,41 @@
+name: Setup application env (Eltres Agent)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  ApplicationBuild:
+    name: Application build (Eltres Agent)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-eltres-agent.yml
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+  
+  Provision:
+    name: Eltres Agent Provision
+    needs: ApplicationBuild
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: Eltres Agent
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.eltres_agent_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.eltres_agent_svc
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=eltres-agent,app=app --timeout=300s
+      eks-resource-to-restart: deploy/themis2-${{ inputs.target_env }}-eltres-agent

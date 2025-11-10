@@ -1,0 +1,4 @@
+[submodule "externals/themis2-app"]
+	path = externals/themis2-app
+	url = git@github.com:Planet-MIMAMORI/themis2-app.git
+	branch = develop

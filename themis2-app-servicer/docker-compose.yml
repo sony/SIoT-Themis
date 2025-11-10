@@ -1,0 +1,133 @@
+services:
+  visualize-tracker:
+    container_name: visualize-tracker
+    image: node:20.16.0
+    working_dir: /app/visualize-tracker
+    tty: true
+    volumes:
+      - ./visualize-tracker:/app/visualize-tracker
+    ports:
+      - "5000:3000"
+
+  realtime-analyzer:
+    container_name: realtime-analyzer
+    image: node:20.16.0
+    working_dir: /app/realtime-analyzer
+    tty: true
+    ports:
+      - 5001:3000
+    volumes:
+      - ./realtime-analyzer:/app/realtime-analyzer
+
+  batch-analyzer:
+    container_name: batch-analyzer
+    image: node:20.16.0
+    working_dir: /app/batch-analyzer
+    tty: true
+    volumes:
+      - ./batch-analyzer:/app/batch-analyzer
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss:11.5.1
+    ports:
+      - 5003:3000
+    env_file:
+      - ./grafana/.env
+      - ./grafana/.env.local
+    environment:
+      - GF_DEFAULT_APP_MODE=development
+      - GF_LOG_LEVEL=debug
+      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource,volkovlabs-echarts-panel
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-storage:/var/lib/grafana
+
+  realtime-transformation-api:
+    container_name: realtime-transformation-api
+    image: node:20.16.0
+    working_dir: /app/realtime-transformation-api
+    tty: true
+    volumes:
+      - ./realtime-transformation-api:/app/realtime-transformation-api
+    ports:
+      - 5004:3000
+
+  data-filtering-api:
+    container_name: data-filtering-api
+    image: node:20.16.0
+    working_dir: /app/data-filtering-api
+    tty: true
+    volumes:
+      - ./data-filtering-api:/app/data-filtering-api
+      - ./schema:/app/data-filtering-api/packages/schema
+    ports:
+      - 5005:3000
+
+  servicer-console:
+    container_name: servicer-console
+    image: node:20.16.0
+    working_dir: /app/servicer-console
+    tty: true
+    volumes:
+      - ./servicer-console:/app/servicer-console
+      - ./schema:/app/servicer-console/packages/schema
+    ports:
+      - 5006:3000
+
+  servicer-postgres:
+    container_name: servicer-postgres
+    image: postgres:16.3
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: servicer
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: servicer
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U servicer" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  servicer-schema:
+    container_name: servicer-schema
+    image: node:20.16.0
+    working_dir: /app/schema
+    tty: true
+    volumes:
+      - ./schema:/app/schema
+    ports:
+      - "5556:5555"
+
+  servicer-keycloak:
+    image: quay.io/keycloak/keycloak:25.0.4
+    container_name: servicer-keycloak
+    depends_on:
+      - servicer-postgres
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://servicer-postgres:5432/keycloak
+      KC_DB_USERNAME: servicer
+      KC_DB_PASSWORD: password
+      KC_HOSTNAME: http://localhost:8081
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
+      TZ: Asia/Tokyo
+    command: start-dev
+
+volumes:
+  grafana-storage: {}
+  postgres-data:
+
+
+networks:
+  default:
+    name: themis2-app-platform
+    external: true

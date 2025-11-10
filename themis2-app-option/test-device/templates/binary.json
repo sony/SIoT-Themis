@@ -1,0 +1,14 @@
+{
+  "id": "Came001",
+  "type": "Camera",
+  "snapshot": {
+    "type": "Binary",
+    "value": "WILL_BE_CHANGED_TO_DATA",
+    "metadata": {
+      "mimeType": { "type": "Text", "value": "image/jpeg"},
+      "encoding": { "type": "Text", "value": "base64url"},
+      "size": { "type": "Number", "value": 54231 },
+      "timestamp": { "type": "DateTime", "value": "2025-05-15T12:34:56Z"}
+    }
+  }
+}

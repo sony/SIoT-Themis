@@ -1,0 +1,70 @@
+name: Setup application env (Visualize Tracker)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  ApplicationBuild:
+    name: Application build (Visualize Tracker)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-visualize-tracker.yml
+    secrets: inherit
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+  
+  Provision-1:
+    name: Visualize Tracker Provision (Servicer1)
+    needs: ApplicationBuild
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: VisualizeTracker
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.sample_tracker_dply \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.sample_tracker_svc \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.sample_tracker_tgb \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.sample_tracker_secret
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=visualize-tracker,app=app --timeout=300s
+      eks-resource-to-restart: deploy/themis2-${{ inputs.target_env }}-visualize-tracker
+      ekspod: sol_prov
+
+  Provision-2:
+    name: Visualize Tracker Provision (Servicer2)
+    needs: Provision-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: VisualizeTracker
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.sample_tracker_dply \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.sample_tracker_svc \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.sample_tracker_tgb \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.sample_tracker_secret
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=visualize-tracker,app=app --timeout=300s
+      eks-resource-to-restart: deploy/themis2-${{ inputs.target_env }}-visualize-tracker
+      ekspod: sol_prov2

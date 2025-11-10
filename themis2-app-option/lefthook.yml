@@ -1,0 +1,55 @@
+pre-commit:
+  parallel: true
+  commands:
+    eltres-agent:
+      root: eltres-agent
+      glob: "*.{js,jsx,ts,tsx}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    eltres-console:
+      root: eltres-console
+      glob: "*.{js,jsx,ts,tsx}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    test-device:
+      root: test-device
+      glob: "*.{js,ts}"
+      exclude:
+        - "**/.eslint.config.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+pre-push:
+  parallel: false
+  commands:
+    docker-build-test:
+      run: |
+        echo "🔍 Pre-push container build test starting..."
+        # Services to test
+        services="eltres-agent eltres-console test-device"
+        
+        for service in $services; do
+          echo "Testing $service..."
+          
+          # Build test
+          if ! timeout 600 docker compose -f docker-compose-prod.yml build --no-cache "$service" 2>&1; then
+            echo "❌ $service build failed"
+            exit 1
+          fi
+
+          # File diff check
+          for file in "package.json" "package-lock.json"; do
+            if ! git diff --exit-code "$service/$file" 2>/dev/null; then
+              echo "❌ $service/$fileにコミットされていない差分があります。更新してください。"
+              exit 1
+            fi
+          done
+        done
+
+        echo "✅ All pre-push checks passed! Proceeding with push..."

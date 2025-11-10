@@ -1,0 +1,34 @@
+name: Opentofu applying
+description: opentofu applyコマンドの実行
+
+inputs:
+  module-name:
+    required: true
+    description: Opentofuモジュール名
+  target:
+    required: true
+    description: targetの一覧。例：-target=module.ekspod_sol_prov2.kubernetes_manifest.batch_analyzer_dply -target=module.ekspod_sol_prov2.kubernetes_manifest.batch_analyzer_svc -target=module.ekspod_sol_prov2.kubernetes_manifest.batch_analyzer_secret
+  working-dir:
+    required: true
+    description: working-directory
+  aws-region:
+    required: true
+    description: AWS Region
+  backend-bucket-name:
+    required: true
+    description: bucket name of S3 file for backend
+
+runs:
+  using: composite
+  steps:
+    # プライベートサブネットへのアクセスに必要な vpc および ec2 リソース構築
+    - name: Setup Opentofu
+      if: ${{ inputs.module-name == 'VPC' || inputs.module-name == 'EC2' || inputs.module-name == 'ACM' }}
+      uses: opentofu/setup-opentofu@v1
+
+    - name: Opentofu (${{ inputs.module-name }} module) applying
+      shell: bash
+      working-directory: ./${{ inputs.working-dir }}
+      run: |
+        tofu init -input=false -backend-config="bucket=${{ inputs.backend-bucket-name }}" -backend-config="region=${{ inputs.aws-region }}"
+        tofu apply -input=false -auto-approve ${{ inputs.target }}

@@ -1,0 +1,43 @@
+name: EKS job deleting
+description: EKS job削除
+
+inputs:
+  job-name:
+    required: true
+    description: Job名
+  aws-account:
+    required: true
+    description: AWS Account ID
+  aws-region:
+    required: true
+    description: AWS Region
+  backend-bucket-name:
+    required: true
+    description: bucket name of S3 file for backend
+  working-dir:
+    required: true
+    description: working-directory
+  eks-cluster-name:
+    required: false
+    description: the value of ekspod is sol_prov or sol_prov2
+    default: eks_cluster_name
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials via OIDC
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws-account }}:role/GithubActionsOIDCRole
+        aws-region: ${{ inputs.aws-region }}
+  
+    - name: ${{ inputs.job-name }} job deleting
+      shell: bash
+      working-directory: ./${{ inputs.working-dir }}
+      run: |
+        tofu init -input=false -backend-config="bucket=${{ inputs.backend-bucket-name }}" -backend-config="region=${{ inputs.aws-region }}"
+        EKS_CLUSTER_NAME=$(tofu output ${{ inputs.eks-cluster-name }})
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl delete job ${{ inputs.job-name }} --ignore-not-found

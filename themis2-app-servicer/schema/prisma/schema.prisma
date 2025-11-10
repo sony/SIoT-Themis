@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_DATABASE_URL")
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(50) @unique
+  apiKey    String   @map("api_key") @db.VarChar(32) @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  types Type[]
+
+  @@map("customers")
+}
+
+model Type {
+  id         Int    @id @default(autoincrement())
+  customerId Int    @map("customer_id")
+  type       String @db.Text
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  conditions Condition[]
+  subscriptions Subscription[]
+
+  @@unique([customerId, type])
+  @@map("types")
+}
+
+model Condition {
+  id       Int    @id @default(autoincrement())
+  typeId   Int    @map("type_id")
+  key      String @db.Text
+  operator String @db.VarChar(2)
+  value    String @db.Text
+
+  type Type @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@map("conditions")
+}
+
+model Subscription {
+  id             Int    @id @default(autoincrement()) 
+  typeId         Int    @map("type_id")
+  subscriptionId String @db.VarChar(36) @map("subscription_id") @unique
+  endpoint       String @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  type Type @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}

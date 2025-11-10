@@ -1,0 +1,110 @@
+name: Setup application env (Platform Console)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  ApplicationBuild:
+    name: Application build (Platform console)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-platform-console.yml
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+
+  DeletePreviousJob:
+    name: Delete Previous Job
+    needs: ApplicationBuild
+    runs-on: ec2-iac-platform-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - uses: ./.github/actions/delete-eks-job
+        with:
+          job-name: themis2-${{ inputs.target_env }}-keycloak-setting-platform-console
+          aws-account: ${{ vars.AWS_ACCOUNT }}
+          aws-region: ${{ vars.AWS_REGION }}
+          backend-bucket-name: themis2-${{ inputs.target_env }}-s3-tfstate
+          working-dir: themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+
+  SetupKeycloak:
+    name: Setup application env (Keycloak)
+    needs: DeletePreviousJob
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: Keycloak
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.keycloak_setting_configmap \
+        -target=module.ekspod_infra.kubernetes_manifest.keycloak_setting_platform_console
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=complete job -l name=keycloak-setting-platform-console,app=app --timeout=300s
+        SECRET_INFO=$(kubectl logs job/themis2-${{ inputs.target_env }}-keycloak-setting-platform-console)
+  
+  GetSecretInfo:
+    name: Get KeyCloak Secret infomation
+    needs: SetupKeycloak
+    runs-on: ec2-iac-platform-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Get KeyCloak Secret infomation
+        id: secret_info
+        run: |
+          cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+          tofu init -input=false -backend-config="bucket=themis2-${{ inputs.target_env }}-s3-tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+          EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+          aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+          SECRET_INFO=$(kubectl logs job/themis2-${{ inputs.target_env }}-keycloak-setting-platform-console)
+          CLIENT_ID_VALUE=$(echo  $SECRET_INFO | jq -r .CLIENT_ID_VALUE)
+          CLIENT_SECRET=$(echo  $SECRET_INFO | jq -r .CLIENT_SECRET)
+          echo "CLIENT_ID_VALUE=$CLIENT_ID_VALUE" >> $GITHUB_OUTPUT
+          echo "CLIENT_SECRET=$CLIENT_SECRET" >> $GITHUB_OUTPUT
+    outputs:
+      CLIENT_ID_VALUE: ${{ steps.secret_info.outputs.CLIENT_ID_VALUE }}
+      CLIENT_SECRET: ${{ steps.secret_info.outputs.CLIENT_SECRET }}
+
+  Provision:
+    name: Platform console Provision
+    needs: GetSecretInfo
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: PlatformConsole
+      PLATFORM_CONSOLE_KEYCLOAK_CLIENT_ID: ${{ needs.GetSecretInfo.outputs.CLIENT_ID_VALUE }}
+      PLATFORM_CONSOLE_KEYCLOAK_CLIENT_SECRET: ${{ needs.GetSecretInfo.outputs.CLIENT_SECRET }}
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.platform_console_secret \
+        -target=module.ekspod_infra.kubernetes_manifest.platform_console_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.platform_console_svc \
+        -target=module.ekspod_infra.kubernetes_manifest.platform_console_tgb
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=platform-console,app=app --timeout=300s
+      eks-resource-to-restart: deploy/themis2-${{ inputs.target_env }}-platform-console

@@ -1,0 +1,79 @@
+name: Opentofu applying(GitHub hosted)
+
+on:
+  workflow_call:
+    inputs:
+      module-name:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+      target_env:
+        required: true
+        type: string
+      ekspod:
+        required: false
+        type: string
+        description: the value of ekspod is sol_prov or sol_prov2
+
+env:
+  TF_VAR_aws_account_id: ${{ vars.AWS_ACCOUNT }}
+  TF_VAR_env: ${{ inputs.target_env }}
+  TF_VAR_use_region: ${{ vars.AWS_REGION }}
+  TF_VAR_bacth_analyzer_data_controller_api_key:  ${{ inputs.ekspod == 'sol_prov' && secrets.BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_1 || secrets.BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_2 }}
+  TF_VAR_sample_tracker_backend_api_key:  ${{ inputs.ekspod == 'sol_prov' && secrets.SAMPLE_TRACKER_BACKEND_API_KEY_1 || secrets.SAMPLE_TRACKER_BACKEND_API_KEY_2 }}
+  TF_VAR_data_filtering_api_backend_api_key:  ${{ inputs.ekspod == 'sol_prov' && secrets.DATA_FILTERING_API_BACKEND_API_KEY_1 || secrets.DATA_FILTERING_API_BACKEND_API_KEY_2 }}
+  TF_VAR_servicer_console_keycloak_client_id:  ${{ inputs.ekspod == 'sol_prov' && vars.SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID_1 || vars.SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID_2 }}
+  TF_VAR_servicer_console_keycloak_client_secret:  ${{ inputs.ekspod == 'sol_prov' && secrets.SERVICER_CONSOLE_KEYCLOAK_CLIENT_SECRET_1 || secrets.SERVICER_CONSOLE_KEYCLOAK_CLIENT_SECRET_2 }}
+  TF_VAR_keycloak_admin: ${{ inputs.ekspod == 'sol_prov' && vars.KEYCLOAK_ADMIN_1 || vars.KEYCLOAK_ADMIN_2 }}
+  TF_VAR_keycloak_admin_password: ${{ inputs.ekspod == 'sol_prov' && secrets.KEYCLOAK_ADMIN_PASSWORD_1 || secrets.KEYCLOAK_ADMIN_PASSWORD_2 }}
+  TF_VAR_postgresql_admin: ${{ inputs.ekspod == 'sol_prov' && vars.POSTGRESQL_ADMIN_1 || vars.POSTGRESQL_ADMIN_2 }}
+  TF_VAR_postgresql_admin_password: ${{ inputs.ekspod == 'sol_prov' && secrets.POSTGRESQL_ADMIN_PASSWORD_1 || secrets.POSTGRESQL_ADMIN_PASSWORD_2 }}
+  TF_VAR_availability_zones: ${{ vars.AVAILABILITY_ZONES }}
+  TF_VAR_iac_allow_cidr_blocks: ${{ vars.IAC_ALLOW_CIDR_BLOCKS }}
+  TF_VAR_eks_admin_user_arns: ${{ vars.EKS_ADMIN_USER_ARNS }}
+  TF_VAR_eks_node_init_script: ${{ vars.CONTENT || '' }}
+  TF_VAR_kube_proxy_version: ${{ vars.KUBE_PROXY_VERSION }}
+  TF_VAR_vpc_cni_version: ${{ vars.VPC_CNI_VERSION }}
+  TF_VAR_coredns_version: ${{ vars.COREDNS_VERSION }}
+  TF_VAR_cluster_autoscaler_version: ${{ vars.CLUSTER_AUTOSCALER_VERSION }}
+  TF_VAR_allowed_cidr_blocks: ${{ vars.ALLOWED_CIDR_BLOCKS }}
+  TF_VAR_grafana_domain_regex: ${{ secrets.GRAFANA_DOMAIN_REGEX }}
+  TF_VAR_github_pat: ${{ secrets.GH_PAT_ADMIN }}
+  TF_VAR_keycloak_setting_admin_username: ${{ inputs.ekspod == 'sol_prov' && vars.KEYCLOAK_ADMIN_1 || vars.KEYCLOAK_ADMIN_2 }}
+  TF_VAR_keycloak_setting_admin_password: ${{ inputs.ekspod == 'sol_prov' && secrets.KEYCLOAK_ADMIN_PASSWORD_1 || secrets.KEYCLOAK_ADMIN_PASSWORD_2 }}
+  TF_VAR_keycloak_setting_new_realm: ${{ vars.NEW_REALM }}
+  TF_VAR_keycloak_setting_user_username: ${{ inputs.ekspod == 'sol_prov' && vars.KEYCLOAK_USER_USERNAME_1 || vars.KEYCLOAK_USER_USERNAME_2 }}
+  TF_VAR_keycloak_setting_user_password: ${{ inputs.ekspod == 'sol_prov' && secrets.KEYCLOAK_USER_PASSWORD_1 || secrets.KEYCLOAK_USER_PASSWORD_2 }}
+  TF_VAR_realtime_notification_api_key: ${{ inputs.ekspod == 'sol_prov' && secrets.REALTIME_NOTIFICATION_API_KEY_1 || secrets.REALTIME_NOTIFICATION_API_KEY_2 }}
+  TF_VAR_public_key_content: ${{ vars.SERVICER_EC2_KEY_PAIR_CONTENT }}
+
+jobs:
+  applying-module:
+    if: ${{ inputs.module-name == 'VPC' || inputs.module-name == 'EC2' }}
+    name: Applying module ${{ inputs.module-name }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
+    permissions:
+      id-token: write # OIDC 認証を使用するために必要
+      contents: read
+      actions: write
+    steps:  
+      #  vpc および ec2 モジュールはセルフホストランナーで実行されていないため、AWS 認証を OIDC で行う
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ vars.AWS_REGION }}
+      # リポジトリのチェックアウト
+      - name: Repository checkout
+        uses: actions/checkout@v4
+      - name: Applying module
+        uses: ./.github/actions/opentofu-applying
+        with:
+          module-name: ${{ inputs.module-name }}
+          target: ${{ inputs.target }}
+          working-dir: themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+          aws-region: ${{ vars.AWS_REGION }}
+          backend-bucket-name: themis2-${{ inputs.target_env }}-servicer-s3-tfstate

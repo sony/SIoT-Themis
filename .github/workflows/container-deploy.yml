@@ -1,0 +1,100 @@
+name: Container Deploy
+
+on:
+  workflow_call:
+    inputs:
+      APPLICATION_TYPE:
+        required: true
+        type: string
+      ENV:
+        required: true
+        type: string
+      AWS_REGION:
+        required: true
+        type: string
+      AWS_ECR_DOMAIN:
+        required: true
+        type: string
+      AWS_ACCOUNT:
+        required: true
+        type: string
+      MAPPINGS:
+        required: false
+        type: string
+      ecr-repository:
+        required: true
+        type: string
+      dockerfile-path:
+        required: true
+        type: string
+      context:
+        required: false
+        type: string
+      build-args:
+        required: false
+        type: string
+      clusters:
+        required: true
+        type: string
+      restart-workload:
+        required: false
+        type: string
+        default: ''
+      stateful:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY:
+        required: false
+
+jobs:
+  deploy:
+    runs-on: ec2-iac-${{ inputs.APPLICATION_TYPE }}-${{ inputs.ENV }}
+    steps:
+      - name: Log input parameters
+        run: |
+          echo "ENV: ${{ inputs.ENV }}"
+          echo "AWS_REGION: ${{ inputs.AWS_REGION }}"
+          echo "AWS_ECR_DOMAIN: ${{ inputs.AWS_ECR_DOMAIN }}"
+          echo "AWS_ACCOUNT: ${{ inputs.AWS_ACCOUNT }}"
+          echo "MAPPINGS: ${{ inputs.MAPPINGS }}"
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/GithubActionsOIDCRole
+          aws-region: ${{ inputs.AWS_REGION }}
+      - if: ${{ inputs.ecr-repository == 'option/eltres-agent' && inputs.MAPPINGS != '' }}
+        run: |
+          echo "MAPPINGS: ${{ inputs.MAPPINGS }}"
+          mkdir -p themis2-app-option/eltres-agent/mappings
+          cat << EOF > themis2-app-option/eltres-agent/mappings/mappings.json
+          ${{ inputs.MAPPINGS }}
+          EOF
+          cat themis2-app-option/eltres-agent/mappings/mappings.json
+      - name: Prepare build args
+        id: build-args-prep
+        run: |
+          if [ -n "${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY }}" ]; then
+            echo "build-args=NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY }}" >> $GITHUB_OUTPUT
+          else
+            echo "build-args=${{ inputs.build-args }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Log build args
+        run: |
+          echo "build-args: ${{ steps.build-args-prep.outputs.build-args }}"
+      - uses: ./.github/actions/container-build/
+        with:
+          region: ${{ inputs.AWS_REGION }}
+          ecr-repository-uri: ${{ inputs.AWS_ECR_DOMAIN }}/${{ inputs.ecr-repository }}/${{ inputs.ENV }}
+          dockerfile-path: ${{ inputs.dockerfile-path }}
+          context: ${{ inputs.context }}
+          build-args: ${{ steps.build-args-prep.outputs.build-args }}
+      - if: ${{ github.event_name != 'workflow_dispatch' && inputs.restart-workload != '' }}
+        uses: ./.github/actions/pod-restart/
+        with:
+          region: ${{ inputs.AWS_REGION }}
+          clusters: ${{ inputs.clusters }}
+          workload: themis2-${{ inputs.ENV }}-${{ inputs.restart-workload }}
+          stateful: ${{ inputs.stateful }}

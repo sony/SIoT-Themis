@@ -1,0 +1,67 @@
+name: Setup application env (Batch Analyzer)
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  ApplicationBuild:
+    name: Application build (Batch Analyzer)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/application-build-batch-analyzer.yml
+    with:
+      GITHUB_ENV: ${{ inputs.target_env }}
+  
+  Provision-1:
+    name: Batch Analyzer Provision (Servicer1)
+    needs: ApplicationBuild
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: BatchAnalyzer
+      target: |
+        -target=module.ekspod_sol_prov.kubernetes_manifest.batch_analyzer_dply \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.batch_analyzer_svc \
+        -target=module.ekspod_sol_prov.kubernetes_manifest.batch_analyzer_secret
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV_EKS_CLUSTER_NAME=$(tofu output sol_prov_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=batch-analyzer,app=app --timeout=300s
+      eks-resource-to-restart: deploy/themis2-${{ inputs.target_env }}-batch-analyzer
+      ekspod: sol_prov
+  
+  Provision-2:
+    name: Batch Analyzer Provision (Servicer2)
+    needs: Provision-1
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-servicer-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      module-name: BatchAnalyzer
+      target: |
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.batch_analyzer_dply \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.batch_analyzer_svc \
+        -target=module.ekspod_sol_prov2.kubernetes_manifest.batch_analyzer_secret
+      target_env: ${{ inputs.target_env }}
+      health-check-command: |
+        cd themis2-inf-servicer/${{ vars.TOFU_WORK_DIR }}
+        SOL_PROV2_EKS_CLUSTER_NAME=$(tofu output sol_prov2_eks_cluster_name)
+        aws eks update-kubeconfig --name ${SOL_PROV2_EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=batch-analyzer,app=app --timeout=300s
+      eks-resource-to-restart: deploy/themis2-${{ inputs.target_env }}-batch-analyzer
+      ekspod: sol_prov2

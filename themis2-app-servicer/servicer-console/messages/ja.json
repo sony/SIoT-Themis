@@ -1,0 +1,64 @@
+{
+  "Common": {
+    "addButtonLabel": "追加",
+    "agreeButtonLabel": "はい",
+    "backHomeLabel": "ホームに戻る",
+    "copyButtonLabel": "コピー",
+    "deleteButtonLabel": "削除",
+    "denyButtonLabel": "いいえ",
+    "saveButtonLabel": "保存"
+  },
+  "CustomerEdit": {
+    "apiKeyInputLabel": "API Key",
+    "backButtonLabel": "一覧に戻る",
+    "conditionInputLabel": "許可条件",
+    "confirmDeleteTitle": "削除確認",
+    "confirmDeleteContent": "以下の顧客を削除してもよろしいですか？\n顧客名: {name}",
+    "copiedApiKey": "API Keyをコピーしました",
+    "customerNameInputLabel": "顧客名",
+    "endpointInputLabel": "リアルタイム通知用エンドポイント",
+    "exampleUrl": "http://data-transformation-api/glsa_xxxxxxxxxxxxxxxxxx",
+    "key": "キー",
+    "permissionLabel": "アクセス許可",
+    "successSaved": "{name}を保存しました。",
+    "successDeleted": "{name}を削除しました。",
+    "typeInputLabel": "タイプ",
+    "value": "値"
+  },
+  "CustomersList": {
+    "tableHeader": "顧客名"
+  },
+  "ErrorPage": {
+    "title": "予期せぬエラーが発生しました。"
+  },
+  "ErrorContent": {
+    "backHomeLabel": "ホームに戻る"
+  },
+  "Header": {
+    "signOut": "ログアウト"
+  },
+  "NotFound": {
+    "pageNotFound": "存在しないページです。"
+  },
+  "ValidationError": {
+    "Client": {
+      "exceededLength": "{field}は{maxLength}文字以内で入力してください。",
+      "required": "{field}が空です。",
+      "invalid": "不正な{field}です。",
+      "bannedEndpointCharacters": "不正な{field}です。禁止文字 <>\"'=;() は利用できません。"
+    },
+    "Server": {
+      "required": "Validation Error: 必須の値です。",
+      "invalid": "Validation Error: 無効な値です。",
+      "customerNameIsNotUnique": "Validation Error: {name}は既に使用されている顧客名です。",
+      "customerNotFound": "Error: 存在しない顧客です。",
+      "customerGetFailed": "顧客取得に失敗しました。",
+      "customerCreateFailed": "顧客登録に失敗しました。",
+      "customerUpdateFailed": "顧客更新に失敗しました。",
+      "customerDeleteFailed": "顧客削除に失敗しました。",
+      "notificationEndpointNotFound": "リアルタイム通知APIエンドポイントが設定されていません。",
+      "typeIsNotUnique": "Validation Error: {type}は既に使用されているタイプ名です。",
+      "typeCreateFailed": "タイプ登録に失敗しました。"
+    }
+  }
+}

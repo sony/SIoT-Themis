@@ -1,0 +1,30 @@
+name: FIWARE-Orion Provision
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  FIWARE-Orion-Provision:
+    name: FIWARE-Orion-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: FIWARE-Orion
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_orion_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_orion_svc \
+        -target=module.ekspod_infra.kubernetes_manifest.orion_mongodb_secret
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=orion,app=fiware --timeout=300s

@@ -1,0 +1,49 @@
+name: FIWARE-Cygnus Provision
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  Docker-Image-Provision:
+    name: Docker Image Provision
+    runs-on: ec2-iac-platform-${{ inputs.target_env }}
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+      - name: Docker Image Provision
+        run: |
+          cd themis2-inf-platform/externals/cygnus-custom-cert
+          aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+          docker build -t infra/cygnus/${{ inputs.target_env }} .
+          docker tag infra/cygnus/${{ inputs.target_env }}:latest ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/infra/cygnus/${{ inputs.target_env }}:latest
+          docker push ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/infra/cygnus/${{ inputs.target_env }}:latest
+          docker image rm infra/cygnus/${{ inputs.target_env }}:latest
+          docker image rm ${{ vars.AWS_ACCOUNT }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/infra/cygnus/${{ inputs.target_env }}:latest
+
+  FIWARE-Cygnus-Provision:
+    name: FIWARE-Cygnus-Provision
+    needs: Docker-Image-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-opentofu-applying-self-hosted.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      module-name: FIWARE-Cygnus
+      target: |
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_cygnus_dply \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_cygnus_svc \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_cygnus_configmap \
+        -target=module.ekspod_infra.kubernetes_manifest.fiware_cygnus_agent_configmap \
+        -target=module.ekspod_infra.kubernetes_manifest.cygnus_mongodb_secret
+      health-check-command: |
+        cd themis2-inf-platform/${{ vars.TOFU_WORK_DIR }}
+        EKS_CLUSTER_NAME=$(tofu output eks_cluster_name)
+        aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME//\"/}
+        kubectl wait --for=condition=Ready pod -l name=cygnus,app=fiware --timeout=300s

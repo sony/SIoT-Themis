@@ -1,0 +1,116 @@
+name: Provision environment to AWS (Platform-App)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        required: true
+        type: string
+
+jobs:
+  Setup-Keycloak:
+    name: Setup application env (Keycloak)
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-keycloak.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  PlatformConsole-Provision:
+    name: Setup application env (Platform Console)
+    needs: Setup-Keycloak
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-platform-console.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+  
+  Setup-Postgres:
+    name: Setup application env (Postgres)
+    needs: PlatformConsole-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-postgres.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  Eltres-Console:
+    name: Setup application env (Eltres Console)
+    needs: Setup-Postgres
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-eltres-console.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  Eltres-Agent:
+    name: Setup application env (Eltres Agent)
+    needs: Eltres-Console
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-eltres-agent.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  DataControllerAPI-Provision:
+    name: Setup application env (Data Controller API)
+    needs: Eltres-Agent
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-data-controller-api.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  RealtimeNotificationAPI-Provision:
+    name: Setup application env (Realtime Notification API)
+    needs: DataControllerAPI-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-real-time-notification-api.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit
+
+  IoTAgent-JSON-Provision:
+    name: Setup FIWARE IoTAgent JSON
+    needs: RealtimeNotificationAPI-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-fiware-iotagent.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+
+  Setup-KongGateway:
+    name: Setup application env (KongGateway)
+    needs: IoTAgent-JSON-Provision
+    permissions:
+      id-token: write
+      contents: read
+      actions: write
+    uses: ./.github/workflows/inf-platform-setup-application-env-kong-gateway.yml
+    with:
+      target_env: ${{ inputs.target_env }}
+    secrets: inherit

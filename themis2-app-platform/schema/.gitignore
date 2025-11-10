@@ -1,0 +1,8 @@
+# Node.js dependencies
+node_modules
+
+# Environment variables (contains sensitive information)
+.env
+
+# Automatically generated prisma client
+prisma/client

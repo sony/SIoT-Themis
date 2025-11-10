@@ -1,0 +1,192 @@
+services:
+  platform-console:
+    container_name: platform-console
+    image: node:22-slim
+    working_dir: /app/platform-console
+    tty: true
+    volumes:
+      - ./platform-console:/app/platform-console
+      - ./schema:/app/platform-console/packages/schema
+    ports:
+      - "3000:3000"
+
+  data-controller-api-for-documentdb:
+    container_name: data-controller-api-for-documentdb
+    image: node:20.16.0
+    working_dir: /app/data-controller-api-for-documentdb
+    tty: true
+    volumes:
+      - ./data-controller-api-for-documentdb:/app/data-controller-api-for-documentdb
+      - ./schema:/app/data-controller-api-for-documentdb/packages/schema
+    ports:
+      - 4002:3000
+
+  realtime-notification-api-for-documentdb:
+    container_name: realtime-notification-api-for-documentdb
+    image: node:20.16.0
+    working_dir: /app/realtime-notification-api-for-documentdb
+    tty: true
+    volumes:
+      - ./realtime-notification-api-for-documentdb:/app/realtime-notification-api-for-documentdb
+      - ./schema:/app/realtime-notification-api-for-documentdb/packages/schema
+    ports:
+      - "4003:3000"
+
+  schema:
+    container_name: schema
+    image: node:20.16.0
+    working_dir: /app/schema
+    tty: true
+    volumes:
+      - ./schema:/app/schema
+    ports:
+      - "5555:5555"
+
+  postgres:
+    container_name: postgres
+    image: postgres:16.3
+    volumes:
+      - ./postgresql:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: themis2
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U themis2" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:5.0.31
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    command: [ "--replSet", "rs0" ]
+
+  orion:
+    image: fiware/orion:4.0.0
+    ports:
+      - "1026:1026"
+    command: -dbURI mongodb://orion-mongo
+    depends_on:
+      - orion-mongo
+
+  orion-mongo:
+    image: mongo:5.0.31
+    command: --nojournal
+    volumes:
+      - orion-mongo-data:/data/db
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    container_name: keycloak
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: $KEYCLOAK_ADMIN
+      KEYCLOAK_ADMIN_PASSWORD: $KEYCLOAK_ADMIN_PASSWORD
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: $POSTGRES_USER
+      KC_DB_PASSWORD: $POSTGRES_PASSWORD
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
+      TZ: Asia/Tokyo
+    command: start-dev
+  
+  keycloak-init:
+    image: node:20.16.0
+    depends_on:
+      - keycloak
+    volumes:
+      - ./keycloak:/keycloak
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["apt-get update && apt-get install -y jq && /keycloak/init.sh"]
+
+  kong-bootstrap:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: kong:3.4.2
+    command: kong migrations bootstrap
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: postgres
+      KONG_PG_USER: $POSTGRES_USER
+      KONG_PG_PASSWORD: $POSTGRES_PASSWORD
+
+  kong:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kong-bootstrap:
+        condition: service_completed_successfully
+    image: kong:3.4.2
+    user: root
+    ports:
+      - 8000:8000
+      - 8001:8001
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: postgres
+      KONG_PG_USER: $POSTGRES_USER
+      KONG_PG_PASSWORD: $POSTGRES_PASSWORD
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+
+  kong-init:
+    image: kong-init:latest
+    build:
+      context: ./kong
+      dockerfile: Dockerfile
+    depends_on:
+      kong:
+        condition: service_started
+    environment:
+      - KONG_ADMIN_ENDPOINT=http://kong:8001
+      - DATA_CONTROLLER_API_ENDPOINT=http://data-controller-api-for-documentdb:3000
+      - REALTIME_NOTIFICATION_API_ENDPOINT=http://realtime-notification-api-for-documentdb:3000
+      - IOT_AGENT_ENDPOINT=http://iot-agent:4041
+    networks:
+      - default
+
+  cygnus:
+    image: fiware/cygnus-ngsi:latest
+    container_name: cygnus
+    depends_on:
+      - mongodb
+    expose:
+      - "5080"
+    ports:
+      - "5051:5051"
+      - "5080:5080"
+    environment:
+      - "CYGNUS_MONGO_HOSTS=mongodb:27017"
+      - "CYGNUS_MONGO_ENABLE_ENCODING=true"
+      - "CYGNUS_MONGO_DATA_MODEL=dm-by-service-path"
+      - "CYGNUS_MONGO_ATTR_PERSISTENCE=column"
+      - "CYGNUS_MONGO_SERVICE_PORT=5051"
+      - "CYGNUS_LOG_LEVEL=DEBUG"
+      - "CYGNUS_API_PORT=5080"
+      - "CYGNUS_SERVICE_PORT=5051"
+      - "CYGNUS_MONGO_USER=$CYGNUS_MONGO_USER"
+      - "CYGNUS_MONGO_PASS=$CYGNUS_MONGO_PASS"
+      - "CYGNUS_MONGO_AUTH_SOURCE=admin"
+
+volumes:
+  postgres-data:
+  mongo-data:
+  orion-mongo-data:
+
+
+networks:
+  default:
+    name: themis2-app-platform

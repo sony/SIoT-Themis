@@ -1,0 +1,8 @@
+## 事前準備
+以下のコマンドを実行し、環境変数を設定する。
+```shell
+export TF_VAR_platform_console_keycloak_client_id=Keycloakにて作成した、プラットフォーム管理向けクライアントID
+export TF_VAR_platform_console_keycloak_client_secret=Keycloakにて作成した、プラットフォーム管理向けクライアントシークレット
+export TF_VAR_sample_tracker_backend_api_key=プラットフォーム管理コンソールにて作成した、サンプル可視化サービス（トラッカー）向けAPIキー
+export TF_VAR_bacth_analyzer_data_controller_api_key=<platform管理コンソールで作成したAPIキー>を設定する。
+```

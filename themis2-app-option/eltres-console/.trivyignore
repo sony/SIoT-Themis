@@ -1,0 +1,7 @@
+# node:22-slim コンテナで zlib について CVE-2023-45853 が検知されるが、Debian 公式で非該当とされているため無視
+# Debian 公式で非該当とされている理由は、以下の通り
+# - https://security-tracker.debian.org/tracker/CVE-2023-45853
+# - CVE-2023-45853 は minizip 内の処理のバッファオーバーフローによる脆弱性
+# - node:22-slim コンテナに含まれる zlib は minizip を含まずにビルドされている
+# - よって、node:22-slim コンテナに含まれる zlib は CVE-2023-45853 に該当しない
+CVE-2023-45853

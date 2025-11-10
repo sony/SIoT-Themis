@@ -1,0 +1,126 @@
+pre-commit:
+  parallel: true
+  commands:
+    visualize-tracker:
+      root: visualize-tracker/
+      glob: "*.{js,jsx,ts,tsx}"
+      exclude:
+        - "**/.eslintrc.*"
+        - "visualize-tracker/src/app/(map)/components/polyline.tsx"
+        - "visualize-tracker/src/app/(map)/components/circle.tsx"
+        - "visualize-tracker/src/app/(map)/components/polygon.tsx"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    realtime-analyzer:
+      root: realtime-analyzer/
+      glob: "*.{js,ts}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    batch-analyzer:
+      root: batch-analyzer
+      glob: "*.{js,ts}"
+      exclude:
+        - "**/.eslint.config.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+    
+    realtime-transformation-api:
+      root: realtime-transformation-api/
+      glob: "*.{js,ts}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    data-filtering-api:
+      root: data-filtering-api/
+      glob: "*.{js,ts}"
+      exclude:
+        - "**/.eslintrc.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+    servicer-console:
+      root: servicer-console/
+      glob: "*.{js,jsx,ts,tsx}"
+      exclude:
+        - "**/.eslint.*"
+      run: npx eslint --fix --max-warnings=0 {staged_files} && npx prettier --write {staged_files}
+      stage_fixed: true
+
+pre-push:
+  parallel: false
+  commands:
+    batch-analyzer:
+      root: batch-analyzer/
+      run: |
+        echo "Testing batch-analyzer..."        
+        # Build test
+        if ! docker build --pull --no-cache -t batch-analyzer:latest .; then
+          echo "❌ batch-analyzer build failed"
+          exit 1
+        fi
+    realtime-analyzer:
+      root: realtime-analyzer/
+      run: |
+        echo "Testing realtime-analyzer..."
+        # Build test
+        if ! docker build --pull --no-cache -t realtime-analyzer:latest .; then
+          echo "❌ realtime-analyzer build failed"
+          exit 1
+        fi
+    realtime-transformation-api:
+      root: realtime-transformation-api/
+      run: |
+        echo "Testing realtime-transformation-api..."
+        # Build test
+        if ! docker build --pull --no-cache -t realtime-transformation-api:latest .; then
+          echo "❌ realtime-transformation-api build failed"
+          exit 1
+        fi
+    data-filtering-api:
+      root: /
+      run: |
+        echo "Testing data-filtering-api..."
+        # Build test
+        if ! docker build --pull --no-cache -t data-filtering-api:latest ./data-filtering-api; then
+          echo "❌ data-filtering-api build failed"
+          exit 1
+        fi
+    servicer-console:
+      root: /
+      run: |
+        echo "Testing servicer-console..."
+        # Build test
+        if ! docker build --pull --no-cache -t servicer-console:latest ./servicer-console; then
+          echo "❌ servicer-console build failed"
+          exit 1
+        fi
+    visualize-tracker:
+      root: visualize-tracker/
+      run: |
+        echo "Testing visualize-tracker..."
+        # Build test
+        if ! docker build --pull --no-cache -t visualize-tracker:latest .; then
+          echo "❌ visualize-tracker build failed"
+          exit 1
+        fi
+    common:
+      root: .
+      run: |
+        services="batch-analyzer realtime-analyzer realtime-transformation-api data-filtering-api servicer-console visualize-tracker"
+        for service in $services; do
+          # File diff check
+          for file in "package.json" "package-lock.json"; do
+            if ! git diff --exit-code "$service/$file" 2>/dev/null; then
+              echo "❌ $service/$fileにコミットされていない差分があります。更新してください。"
+              exit 1
+            fi
+          done
+        done
+
+        echo "✅ All pre-push checks passed! Proceeding with push..."

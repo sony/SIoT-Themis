@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: Sensor Data
+    type: file
+    disableDeletion: false
+    allowUiUpdates: ${EDITABLE_PROVISIONED_RESOURCE}
+    options:
+      path: /etc/grafana/provisioning/dashboards

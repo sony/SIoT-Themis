@@ -1,0 +1,50 @@
+{
+    "gnss": {
+        "offset": 0,
+        "length": 8
+    },
+    "latitude": {
+        "offset": 8,
+        "length": 25,
+        "gain": 0.000008888888888888888,
+        "bias": -90
+    },
+    "longitude": {
+        "offset": 33,
+        "length": 26,
+        "gain": 0.000008888888888888888,
+        "bias": -180
+    },
+    "height": {
+        "offset": 59,
+        "length": 14,
+        "bias": -1000
+    },
+    "speed": {
+        "offset": 73,
+        "length": 14,
+        "gain": 0.1
+    },
+    "course": {
+        "offset": 87,
+        "length": 12,
+        "gain": 0.1
+    },
+    "adc": {
+        "offset": 99,
+        "length": 10
+    },
+    "temperature": {
+        "offset": 109,
+        "length": 8,
+        "bias": -128
+    },
+    "sos": {
+        "offset": 117,
+        "length": 2
+    },
+    "userdata": {
+        "offset": 119,
+        "length": 9
+    }
+}

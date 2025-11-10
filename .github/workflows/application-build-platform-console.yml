@@ -1,0 +1,64 @@
+name: Deploy PlatformConsole
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - develop
+      - release/*
+      # - main
+    paths:
+      - 'themis2-app-platform/platform-console/**'
+      - '.github/workflows/application-build-platform-console.yml'
+      - '.github/workflows/container-deploy.yml'
+      - '.github/workflows/determine-environment.yml'
+      - '.github/actions/container-build/action.yml'
+      - '.github/actions/pod-restart/action.yml'
+  workflow_call:
+    inputs:
+      GITHUB_ENV:
+        required: true
+        type: string
+
+jobs:
+  determine-environment:
+    uses: ./.github/workflows/determine-environment.yml
+
+  get-env-vars:
+    needs: determine-environment
+    environment: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}
+    runs-on: ubuntu-latest
+    outputs:
+      ENV: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}
+      DOMAIN: ${{ vars.DOMAIN }}
+    steps:
+      - name: Get environment variables
+        run: echo "Environment variables retrieved"
+      - name: Log environment variables
+        run: |
+          echo "ENV: ${{ inputs.GITHUB_ENV || needs.determine-environment.outputs.environment }}"
+          echo "AWS_REGION: ${{ vars.AWS_REGION }}"
+          echo "AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT }}"
+          echo "DOMAIN: ${{ vars.DOMAIN }}"
+
+  PlatformConsole:
+    needs: [determine-environment, get-env-vars]
+    uses: ./.github/workflows/container-deploy.yml
+    with:
+      APPLICATION_TYPE: platform
+      ENV: ${{ needs.get-env-vars.outputs.ENV }}
+      AWS_REGION: ${{ needs.get-env-vars.outputs.AWS_REGION }}
+      AWS_ECR_DOMAIN: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}.dkr.ecr.${{ needs.get-env-vars.outputs.AWS_REGION }}.amazonaws.com
+      AWS_ACCOUNT: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}
+      ecr-repository: themis2/platform-console
+      dockerfile-path: ./themis2-app-platform/platform-console/Dockerfile
+      context: ./themis2-app-platform
+      clusters: themis2-${{ needs.get-env-vars.outputs.ENV }}-eks-cp-infra
+      build-args: |
+        NEXTAUTH_URL=https://platform.${{ needs.get-env-vars.outputs.ENV }}.${{ needs.get-env-vars.outputs.DOMAIN }}
+      restart-workload: platform-console
