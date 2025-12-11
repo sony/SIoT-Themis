@@ -46,7 +46,6 @@ eks_ingress_subnet_cidr_blocks = {
 }
 
 # EC2 (IaC)
-iac_ami_id        = "ami-04bc67ba3896b3841"
 iac_instance_type = "t3a.xlarge"
 iac_allow_cidr_blocks = [
   "118.238.7.66/32",

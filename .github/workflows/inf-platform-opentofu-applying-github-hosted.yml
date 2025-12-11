@@ -49,6 +49,7 @@ env:
   TF_VAR_grafana_domain_regex: ${{ vars.GRAFANA_DOMAIN_REGEX }}
   TF_VAR_github_pat: ${{ secrets.GH_PAT_ADMIN }}
   TF_VAR_public_key_content: ${{ vars.PLATFORM_EC2_KEY_PAIR_CONTENT }}
+  TF_VAR_iac_ami_id: ${{ vars.BASE_AMI_ID }}
 
 jobs:
   applying-module:

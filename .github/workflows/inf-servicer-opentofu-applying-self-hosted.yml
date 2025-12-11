@@ -76,6 +76,7 @@ env:
   TF_VAR_keycloak_setting_user_password: ${{ inputs.ekspod == 'sol_prov' && secrets.KEYCLOAK_USER_PASSWORD_1 || secrets.KEYCLOAK_USER_PASSWORD_2 }}
   TF_VAR_realtime_notification_api_key: ${{ inputs.ekspod == 'sol_prov' && secrets.REALTIME_NOTIFICATION_API_KEY_1 || secrets.REALTIME_NOTIFICATION_API_KEY_2 }}
   TF_VAR_public_key_content: ${{ vars.SERVICER_EC2_KEY_PAIR_CONTENT }}
+  TF_VAR_iac_ami_id: ${{ vars.BASE_AMI_ID }}
 
 jobs:
   Applying-module:
