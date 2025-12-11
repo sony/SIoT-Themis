@@ -32,11 +32,11 @@ spec:
                 name: ${sys_name}-${env}-visualize-tracker-secret
                 key: BACKEND_API_KEY
           - name: DATA_CONTROLLER_API_ORIGIN
-            value: "https://kong.${env}.unvs-themis.com/data-controller-api"
+            value: "https://kong.${env}.${domain}/data-controller-api"
           - name: VISUALIZE_TRACKER_ORIGIN
-            value: "https://tracker.${env}.unvs-themis.com"
+            value: "https://tracker.${env}.${domain}"
           - name: REALTIME_NOTIFICATION_API_ORIGIN
-            value: "https://kong.${env}.unvs-themis.com/realtime-notification-api"
+            value: "https://kong.${env}.${domain}/realtime-notification-api"
           lifecycle:
             preStop:
               exec:
