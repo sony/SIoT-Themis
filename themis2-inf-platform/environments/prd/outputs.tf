@@ -17,3 +17,7 @@ output "aurora_db_endpoint" {
 output "eks_cluster_name" {
   value = module.eks["infra"].cluster_name
 }
+
+output "aws_iot_certificate_id" {
+  value = module.iot_core.certificate_id
+}
