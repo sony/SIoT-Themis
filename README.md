@@ -51,7 +51,7 @@
 | プラットフォーム管理コンソール | 可視化・分析サービスの利用登録・設定を行う。 |
 | サービサー管理コンソール | 顧客と顧客が閲覧可能なデータを管理する。 |
 | サンプル可視化サービス(Grafana) | センサーデータの内容や分析結果を図やグラフとして可視化する。 |
-| サンプル可視化サービス(Tracker) | センサーデータの内容や分析結果を地図上に可視化する。 |
+| サンプル可視化サービス(Tracker) | センサーデータ（type=ship）の内容や分析結果を地図上に可視化する。 |
 | サンプル分析サービス(バッチ) | センサーデータの内容を定期分析する。 |
 | サンプル分析サービス(リアルタイム) | センサーデータの内容をリアルタイムに分析する。 |
 | ELTRESエージェント | センサーデータを登録する。また、プラットフォーム管理コンソールでリアルタイム通知を有効にするとリアルタイム分析設定を更新する。 |
@@ -127,25 +127,28 @@
 ### Variables
 | 項目 | 設定内容 | 設定例 |
 |------|----------| ---- |
+| ALLOWED_CIDR_BLOCKS | アプリへのアクセス許可IP(利用者環境のグローバルIP) | [  "118.238.7.66/32",  "118.238.7.69/32"]  |
+| AVAILABILITY_ZONES | 構築するAWSのavailability zone | {  "subnet1" = "ap-northeast-1a",  "subnet2" = "ap-northeast-1d"  } |
+| BASE_AMI_ID | EC2のAMI ID(後述の手順で作成) | ami-0a9d744335cc5cf00 |
 | CLUSTER_AUTOSCALER_VERSION | EKSのCluster Autoscalerのバージョン | v1.32.1 |
 | COREDNS_VERSION | CoreDNSのバージョン | v1.11.4-eksbuild.14 |
 | DOMAIN | ドメイン | unvs-themis.com |
 | ELTRES_AGENT_TOPICS | eltresエージェントのtopic群 | ["$share/dev/eltres/global/payload-with-principalId"] |
 | EXTRA_USERS | EC2ユーザーおよび公開鍵 | [  { "id": "t-test", "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAaABAQCjaZcsPgTsKwFdrDd0f8XfUgIc8UqOgir9b8x+13hWGIJjpd8LVDs/p7dAZosqkjb6tfLq+cmGaJ8ZNlsDwCmy164amDo8SH6kPlc8eiCyS6ECafXVog0UNLwgLN0MYp+QnNDqSWlr/BGcIZzb+BmslAM7GFaVXi5aoJflqa5PChxuGbsKQmbhB3C5qCu4Mlp4pJqCnep8JIxLNi22Oft+cSOtSeKt3/uHA7DjUCSL8PERSWQcwN1kfuKGrupNPFLnPYJiHS/WG0sgtXeVu2vNZ10CbgbsopzC1Ms/iThdaaS0114e3TSGAH5NWEld1hZXTDBx04YPpJNhuNSq7WdP ubuntu-user@test-999" },  { "id": "test", "publicKey": "ssh-aa99999 AAAABBBBCcdeuisndnN4ASEGF8sdT8dsdfJJDSkfambngf/uJs6YE d-test@test-111" }] |
-| iac_allow_cidr_blocks | EC2アクセス許可IP | [  "118.238.7.66/32",  "118.238.7.69/32"] |
-| KEYCLOAK_ADMIN_1 | adminのパスワード | keycloak-admin |
-| KEYCLOAK_ADMIN_2 | adminのパスワード | keycloak-admin |
-| KEYCLOAK_ADMIN_USERNAME | keycloakのadminユーザーのユーザーネーム | keyckloak-admin |
-| KEYCLOAK_USER_USERNAME | kecloakのユーザーネーム | eltres-user |
-| KEYCLOAK_USER_USERNAME_1 | kecloakのユーザーネーム | servicer-user1 |
-| KEYCLOAK_USER_USERNAME_2 | kecloakのユーザーネーム | servicer-user2 |
-| KEYCLOAK_PROXY_VERSION | kecloakのバージョン | v1.32.3-eksbuild.7 |
+| iac_allow_cidr_blocks | EC2アクセス許可IP(利用者環境のグローバルIP) | [  "118.238.7.66/32",  "118.238.7.69/32"] |
+| KEYCLOAK_ADMIN_1 | サービサー1用keycloakログインユーザー名 | keycloak-admin |
+| KEYCLOAK_ADMIN_2 | サービサー2用keycloakログインユーザー名 | keycloak-admin |
+| KEYCLOAK_ADMIN_USERNAME | データプラットフォーム用keycloakログインユーザー名 | keyckloak-admin |
+| KEYCLOAK_USER_USERNAME | データプラットフォーム管理コンソールのユーザー名 | eltres-user |
+| KEYCLOAK_USER_USERNAME_1 | サービサー1用サービサー管理コンソールのユーザー名 | servicer-user1 |
+| KEYCLOAK_USER_USERNAME_2 | サービサー2用サービサー管理コンソールのユーザー名 | servicer-user2 |
+| KEYCLOAK_PROXY_VERSION | keycloakのバージョン | v1.32.3-eksbuild.7 |
 | NEW_REALM | keycloakで作る新しいレルムの名前 | themis2 |
 | PLATFORM_EC2_KEY_PAIR_CONTENT | EC2のSSH公開鍵(プラットフォーム用) | ssh-rsa +8C5azLLcxLWN5w6AiKkGSFJn083aooLPc4sZ4ISNw/KsCqd48tio8sRzkUti/t-test@test-777 |
-| POSTGRESQL_ADMIN_1 | postgresのdb名 | postgres |
-| POSTGRESQL_ADMIN_2 | postgresのdb名 | postgres |
-| SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID_1 | サービサー用keycloakのクライアントID | dummy |
-| SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID_2 | サービサー用keycloakのクライアントID2 | dummy |
+| POSTGRESQL_ADMIN_1 | サービサー1用postgresのdb名 | postgres |
+| POSTGRESQL_ADMIN_2 | サービサー2用postgresのdb名 | postgres |
+| SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID_1 | サービサー1用keycloakのクライアントID | dummy |
+| SERVICER_CONSOLE_KEYCLOAK_CLIENT_ID_2 | サービサー2用keycloakのクライアントID | dummy |
 | SERVICER_EC2_KEY_PAIR_CONTENT | EC2のSSH公開鍵(サービサー用) | ssh-rsa +8C5azLLcxLWN5w6AiKkGSFJn083aooLPc4sZ4ISNw/KsCqd48tio8sRzkUti/t-test@test-777 |
 | TOFU_WORK_DIR | tofuコマンドを使用するディレクトリ | environments/prd |
 | VPC_CNI_VERSION | AWS VPC CNIプラグインのバージョン | v1.19.5-eksbuild.3 |
@@ -154,31 +157,29 @@
 | 項目 | 設定内容 | 設定例 |
 |------|----------| ---- |
 | AURORA_MASTER_PASSWORD | auroradbのマスター権限ユーザーのパスワード(8文字以上) | adminadmin |
-| BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_1 | データ操作APIからバッチアナライザーを使う時に使用するAPIキー | badfbadbvaduusafhasiu |
-| BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_2 | 上のやつの２環境用のやつ | sdfhjsnioermpbosbdz |
-| CYGNUS_DOCDB_MASTER_PASSWORD | cygnusDocumentDBのマスター権限ユーザーのパスワード(8~100文字) | jsduadasi |
-| DATA_FILTERING_API_BACKEND_API_KEY_1 | サービサー用APIキー | mchwspdsgjqsa |
-| DATA_FILTERING_API_BACKEND_API_KEY_2 | サービサー用APIキー2 | hsfoiewsp9swo |
+| BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_1 | データ操作APIからサービサー1用バッチアナライザーを使う時に使用するAPIキー | badfbadbvaduusafhasiu |
+| BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_2 | データ操作APIからサービサー2用バッチアナライザーを使う時に使用するAPIキー | sdfhjsnioermpbosbdz |
+| CYGNUS_DOCDB_MASTER_PASSWORD | Cygnus用DocumentDBのマスター権限ユーザーのパスワード(8~100文字) | jsduadasi |
+| DATA_FILTERING_API_BACKEND_API_KEY_1 | サービサー1用データフィルタリングAPIのAPIキー | mchwspdsgjqsa |
+| DATA_FILTERING_API_BACKEND_API_KEY_2 | サービサー2用データフィルタリングAPIのAPIキー | hsfoiewsp9swo |
 | GH_PAT | Githubリポジトリにアクセスするためのトークン | github_pat_11BLED6AQ09cVhIyDM_Y4y0OVhsFjBjdZU3qvpbVs0tGlXClUg67RTEPPu2e |
 | GH_PAT_ADMIN | 管理者権限付きのGithubトークン | github_pat_85GML9D2APScEjPuMT_AiSFMop9qFESi3Wts0hbcowshAjfdE24HsqfPVM0o |
-| NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY | googleマップを表示するために必要なAPIキー | BNGMDOFQFNNDSK |
-| GRAFANA_PLATFORM_CONSOLE_API_KEY_SECRET_1 | grafanaで使うプラットフォーム管理コンソールのAPIキー | cCtCu8llnnpPEvMagvZ4YfUSXmvMDgIN |
-| GRAFANA_PLATFORM_CONSOLE_API_KEY_SECRET_2 | grafanaで使うプラットフォーム管理コンソールのAPIキー2 | nBrjIkRlZumXH9CeIKgntHlPSKkrXUHM |
-| KEYCLOAK_ADMIN_PASSWORD | keycloakのadminユーザーのパスワード(文字数制限なし) | admin |
-| KEYCLOAK_ADMIN_PASSWORD_1 | keycloakのadminユーザーのパスワード(文字数制限なし) | admin |
-| KEYCLOAK_ADMIN_PASSWORD_2 | keycloakのadminユーザーのパスワード(文字数制限なし) | admin |
-| KEYCLOAK_USER_PASSWORD | keycloakのユーザーのパスワード(文字数制限なし) | admin |
-| KEYCLOAK_USER_PASSWORD_1 | keycloakのユーザーのパスワード(文字数制限なし) | admin |
-| KEYCLOAK_USER_PASSWORD_2 | keycloakのユーザーのパスワード(文字数制限なし) | admin |
+| NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY | Trackerのマップを表示するためのAPIキー | BNGMDOFQFNNDSK |
+| KEYCLOAK_ADMIN_PASSWORD | データプラットフォーム用keycloakのadminユーザーのパスワード(文字数制限なし) | admin |
+| KEYCLOAK_ADMIN_PASSWORD_1 | サービサー1用keycloakのadminユーザーのパスワード(文字数制限なし) | admin |
+| KEYCLOAK_ADMIN_PASSWORD_2 | サービサー2用keycloakのadminユーザーのパスワード(文字数制限なし) | admin |
+| KEYCLOAK_USER_PASSWORD | データプラットフォーム管理コンソールのユーザーのパスワード(文字数制限なし) | admin |
+| KEYCLOAK_USER_PASSWORD_1 | サービサー1用サービサー管理コンソールのユーザーのパスワード(文字数制限なし) | admin |
+| KEYCLOAK_USER_PASSWORD_2 | サービサー2用サービサー管理コンソールのユーザーのパスワード(文字数制限なし) | admin |
 | MONGO_SSL_TRUSTSTORE_PASSWORD | mongoをsslで使用するときに行われる検証に使用するトラストストアを開くためのパスワード | changeit |
-| ORION_DOCDB_MASTER_PASSWORD | orionDocumentDBのマスター権限ユーザーのパスワード(8~100文字) | s5e2Pcy2TBJG |
-| PGPASSWORD | postgres接続時のパスワード(8文字以上) | JZh4TXM01z25 |
-| POSTGRESQL_ADMIN_PASSWORD_1 | postgresのadminパスワード(8文字以上) | admin |
-| POSTGRESQL_ADMIN_PASSWORD_2 | postgresのadminパスワード(8文字以上) | admin |
-| REALTIME_NOTIFICATION_API_KEY_1 | サービサーのAPIキー | cCtCu8llnnpPEvMagvZ4YfUSXmvMDgIN |
-| REALTIME_NOTIFICATION_API_KEY_2 | サービサーのAPIキー | nBrjIkRlZumXH9CeIKgntHlPSKkrXUHM |
-| SAMPLE_TRACKER_BACKEND_API_KEY_1 | トラッカー用のAPIキー | BADFVMMEETQTG |
-| SAMPLE_TRACKER_BACKEND_API_KEY_2 | トラッカー用のAPIキー2 | NUSDGNJNMOQGE |
+| ORION_DOCDB_MASTER_PASSWORD | Orion用DocumentDBのマスター権限ユーザーのパスワード(8~100文字) | s5e2Pcy2TBJG |
+| PGPASSWORD | Aurora postgres接続時のパスワード(8文字以上) | JZh4TXM01z25 |
+| POSTGRESQL_ADMIN_PASSWORD_1 | サービサー1用postgresのadminパスワード(8文字以上) | adminadmin |
+| POSTGRESQL_ADMIN_PASSWORD_2 | サービサー2用postgresのadminパスワード(8文字以上) | adminadmin |
+| REALTIME_NOTIFICATION_API_KEY_1 | サービサー1用リアルタイム通知APIのAPIキー | cCtCu8llnnpPEvMagvZ4YfUSXmvMDgIN |
+| REALTIME_NOTIFICATION_API_KEY_2 | サービサー2用リアルタイム通知APIののAPIキー | nBrjIkRlZumXH9CeIKgntHlPSKkrXUHM |
+| SAMPLE_TRACKER_BACKEND_API_KEY_1 | サービサー1用トラッカー用のAPIキー | BADFVMMEETQTG |
+| SAMPLE_TRACKER_BACKEND_API_KEY_2 | サービサー2用トラッカー用のAPIキー2 | NUSDGNJNMOQGE |
 | SERVICER_CONSOLE_KEYCLOAK_CLIENT_SECRET | サービサー用keycloakのクライアントシークレット | BNUIGWBLGNOQINGNOK |
 
 3. Github Environmentsを設定する
@@ -189,7 +190,7 @@
 | 項目 | 設定内容 | 設定例 |
 |------|----------| ---- |
 | AWS_ACCOUNT | AWSアカウントID | 012345678900 |
-| EKS_ADMIN_USER_ARNS | EKSの管理者権限 | [  "arn:aws:iam::012345678900:user/User1",  "arn:aws:iam::012345678900:user/User2",  "arn:aws:iam::012345678900:user/User3""arn:aws:iam::012345678900:role/testrole"] |
+| EKS_ADMIN_USER_ARNS | EKSの管理者権限を付与するIAMユーザーもしくはロール | [  "arn:aws:iam::012345678900:user/User1",  "arn:aws:iam::012345678900:user/User2",  "arn:aws:iam::012345678900:user/User3""arn:aws:iam::012345678900:role/testrole"] |
 | ENV | 環境名 | dev |
 | MAPPINGS | [ELTRES Agentデータ送受信設定](####ELTRESエージェントの送受信データ設定) | [MAPPINGS例](####MAPPINGS)|
 
@@ -217,7 +218,7 @@
     groups のキー（KEY）とリンクし、definitions の中で同じキーを持つオブジェクトに対応します。  
 
 - **type**  
-   必須項目で、データの種類を表します。（右例のshipやcar）  
+   必須項目で、データの種類を表します（右例のshipやcar）。サンプル可視化サービス(Tracker)に表示するためにはtype=shipにする必要があります。
 
 -  **offset**  
    dataPayload をビット変換した際の開始ビット位置を表します。  
@@ -238,6 +239,7 @@
       例えば、bias が -90 で、対象データを10進数に変換した値が10の場合-80になります。
 
 #### MAPPINGS例
+※サンプル可視化サービス(Tracker)に表示するためにはtype=shipにする必要があります
  ```JSON
 {
     "groups": {
@@ -351,7 +353,7 @@
 7. ロール名に`GithubActionsOIDCRole`と入力し、右下の**ロールを作成**ボタンをクリックする
 ![add-role](./picture/add-role.png)
 
-## Elastic IPのquota上限変更申請手順
+## Elastic IPのquota上限変更申請
 1. AWSコンソールにログインし、左上の検索ボックスに`quota`と入力して出てきたサービスを選択する
 ![search-quota-service](./picture/search-quota-service.png)
 
@@ -366,6 +368,41 @@
 
 5. 以下の赤枠部分に引き上げたいクォータ値を入力し、右下のリクエストボタンをクリックする
 ![increase-quota](./picture/increase-quota.png)
+
+6.しばらく時間を置くことでリクエストが承認される
+
+## EC2 AMIイメージを作成
+1. AWSコンソールにログインし、EC2にて新規インスタンス作成する
+
+以下が前提条件
+
+- AMI：ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20251022
+- 作業端末からSSH接続が可能であること
+- インターネット接続が可能であること
+
+2. 作成したEC2にSSH接続しgithub runnerセットアップ用シェルを配置する
+- 対象スクリプト：themis2-inf-platform/modules/ec2/templates/setup_github_runner.sh
+- 配置先：/opt　※パーミッションを777に設定
+
+3. コマンドインストールスクリプトを任意のディレクトリに配置し実行する
+
+※出力の最後に「All installations completed.」と表示されていること
+
+```
+sh ./init_script.sh 
+```
+
+4. インスタンスを停止しイメージを作成する
+![ec2-snap-shot-01](./picture/ec2-snapshot-01.png)
+
+5. 任意のAMI名を指定し、イメージを作成をクリックする 
+![ec2-snap-shot-02](./picture/ec2-snapshot-02.png)
+
+6. AMI一覧に移動し、作成したAMI IDを控える
+![ec2-snap-shot-03](./picture/ec2-snapshot-03.png)
+
+7. 控えたAMI IDをGithubのVariablesの「BASE_AMI_ID」に入力する
+
 
 ## GithubActions実行(IaCサーバー)
 1. 以下のURLからGitHubページにアクセスする  
@@ -420,21 +457,34 @@
 9. 各ジョブが正常に終了し、ワークフローが正常に完了できていることを確認する
 
 ## サービサー用APIキー取得・設定
+### IoTCore証明書ID取得
+後続手順で利用するIoTCore証明書IDを事前に確認する
+
+1. GithubActionsの**Provision environment to AWS(Platform-inf)** をクリックする
+![choice-workflow(platform-inf)](./picture/choice-workflow(platform-inf).png)
+
+2. IoTCoreが初めて成功したワークフローを選択し画面下部のIoT Core証明書IDを控える
+![check-iotcore-certificate](./picture/iotcore-certificate.png)
+
 ### APIキーの取得・設定
 1. 以下のURLからプラットフォーム管理コンソールにアクセスする  
-   https://platform.[環境名].unvs-themis.com
+   https://platform.[環境名].[DOMAINの値]
 
 2. **Sign in With Keycloak** をクリックする
 ![Sign in with Keycloak](./picture/Sign-in-with-Keycloak.png)
 
-3. ユーザー名・パスワードをそれぞれ入力し、**Sign In** ボタンをクリックする
+3. 環境変数に設定したユーザー名・パスワードをそれぞれ入力し、**Sign In** ボタンをクリックする  
+ユーザー名：KEYCLOAK_USER_USERNAME  
+パスワード：KEYCLOAK_USER_PASSWORD
 ![Sign in](./picture/Sign-in.png)
-※ユーザー名・パスワードはそれぞれ環境変数で指定している値で設定されます
+
 
 4. **追加** ボタンをクリックする
 ![add-service](./picture/add-service.png)
 
-5. **サービサー名** 、**リアルタイム分析用API Endpoint** 、**Principal ID**を追加・入力し、**保存**ボタンをクリックする
+5. **サービサー名** 、**リアルタイム分析用API Endpoint** 、**Principal ID**を追加・入力し、**保存**ボタンをクリックする  
+リアルタイム分析用API Endpoint：https://analyzer.[ENVの値].[DOMAINの値]/realtime-analyzer  
+Principal ID：IoT Coreの証明書ID
 ![create-new-service](./picture/create-new-service.png)
 
 6. 表示されたAPIキーをコピーしておく
@@ -443,7 +493,9 @@
 7. 一覧へ戻り、再度**追加** ボタンをクリックする
 ![add-service](./picture/add-service.png)
 
-8. **サービサー名** 、**リアルタイム分析用API Endpoint** 、**Principal ID**を追加・入力し、**保存**ボタンをクリックする
+8. **サービサー名** 、**リアルタイム分析用API Endpoint** 、**Principal ID**を追加・入力し、**保存**ボタンをクリックする  
+リアルタイム分析用API Endpoint：https://analyzer.[ENVの値].[DOMAINの値]/realtime-analyzer
+Principal ID：IoT Coreの証明書ID
 ![create-new-service](./picture/create-new-service.png)
 
 9. 表示されたAPIキーをコピーしておく
@@ -469,6 +521,10 @@
 - DATA_FILTERING_API_BACKEND_API_KEY_2
 - SAMPLE_TRACKER_BACKEND_API_KEY_1
 - SAMPLE_TRACKER_BACKEND_API_KEY_2
+- BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_1
+- BACTH_ANALYZER_DATA_CONTROLLER_API_KEY_2
+- REALTIME_NOTIFICATION_API_KEY_1
+- REALTIME_NOTIFICATION_API_KEY_2
 
 ## GithubActions実行(サービサー)
 1. 以下のURLからGitHubページにアクセスする  
@@ -499,44 +555,56 @@
 ## サービサー構築後設定作業
 ### リアルタイム分析サービスの有効化
 1. 以下のURLからプラットフォーム管理コンソールにアクセスする  
-   https://[環境名]-platform.unvs-themis.com/※のちに変更
+   https://platform.[環境名].[DOMAINの値]
 
 2. **Sign in With Keycloak** をクリックする
 ![Sign in with Keycloak](./picture/Sign-in-with-Keycloak.png)
 
-3. ユーザー名・パスワードをそれぞれ入力し、**Sign In** ボタンをクリックする
-![Sign in](./picture/Sign-in.png) 
+3. 環境変数に設定したユーザー名・パスワードをそれぞれ入力し、**Sign In** ボタンをクリックする  
+ユーザー名：KEYCLOAK_USER_USERNAME  
+パスワード：KEYCLOAK_USER_PASSWORD
+![Sign in](./picture/Sign-in.png)   
 ※ユーザー名・パスワードはそれぞれkeycloakのinit.shで設定されたものを使用します
 
-4. サービスを選択する
+4. サービスを選択する  
 ![choice-service](./picture/choice-service.png)
 
 5. **リアルタイム分析**の右にあるトグルボタンをオンにする
 ![realtime-on](./picture/realtime-on.png)
 
-6. **保存**ボタンをクリックする
+6. **保存**ボタンをクリックする  
 ![save-realtime](./picture/save-realtime.png)
 
 ## 各アプリへの接続方法(接続URL)
-keycloakコンソール：https://auth.[ENVの値].unvs-themis.com  
+keycloakコンソール：https://auth.[ENVの値].[DOMAINの値] 
 ※ユーザー名・パスワードはそれぞれ環境変数で指定している値で設定されます
 
-プラットフォーム管理コンソール：https://platform.[ENVの値].unvs-themis.com    
-※ユーザー名・パスワードはそれぞれ環境変数で指定している値で設定されます
+プラットフォーム管理コンソール：https://platform.[ENVの値].[DOMAINの値]     
+- ユーザー名：KEYCLOAK_USER_USERNAME  
+- パスワード：KEYCLOAK_USER_PASSWORD
 
-Grafana：https://grafana.[ENVの値].unvs-themis.com
+Grafana：https://grafana.[ENVの値].[DOMAINの値] 
 - ユーザーネーム：`admin`
 - パスワード：`admin`   
 ※それぞれ初回ログイン時のものです
 
-Grafana2：https://grafana2.[ENVの値].unvs-themis.com
+Grafana2：https://grafana2.[ENVの値].[DOMAINの値] 
 - ユーザーネーム：`admin`
 - パスワード：`admin`   
 ※それぞれ初回ログイン時のものです
 
-Tracker：https://tracker.[ENVの値].unvs-themis.com
+Tracker：https://tracker.[ENVの値].[DOMAINの値] 
 
-Tracker2：https://tracker2.[ENVの値].unvs-themis.com
+Tracker2：https://tracker2.[ENVの値].[DOMAINの値] 
+
+## デバイスへ登録するIoTCore証明書の取得方法
+
+1. GithubActionsの**Provision environment to AWS(Platform-inf)** をクリックする
+![choice-workflow(platform-inf)](./picture/choice-workflow(platform-inf).png)
+
+2. IoTCoreが初めて成功したワークフローを選択し画面下部のArtifactsに表示されているダウンロードアイコンをクリックする
+![download-iotcore-certificate](./picture/iotcore-certificate-download.png)
+
 
 ## 各アプリローカル起動手順
 - [プラットフォーム管理コンソール](./themis2-app-platform/platform-console)
