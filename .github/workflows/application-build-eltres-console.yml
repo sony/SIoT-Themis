@@ -22,6 +22,20 @@ on:
       GITHUB_ENV:
         required: true
         type: string
+      restart-pods:
+        required: false
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      GITHUB_ENV:
+        required: true
+        type: string
+        description: 'Github Environment name (e.g., dev, stg, prod)'
+      restart-pods:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   determine-environment:
@@ -62,3 +76,4 @@ jobs:
       build-args: |
         NEXTAUTH_URL=https://iotagent.${{ needs.get-env-vars.outputs.ENV }}.${{ needs.get-env-vars.outputs.DOMAIN }}
       restart-workload: eltres-console
+      restart-pods: ${{ inputs.restart-pods }}

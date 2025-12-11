@@ -36,6 +36,10 @@ on:
       clusters:
         required: true
         type: string
+      restart-pods:
+        required: false
+        type: boolean
+        default: false
       restart-workload:
         required: false
         type: string
@@ -91,7 +95,7 @@ jobs:
           dockerfile-path: ${{ inputs.dockerfile-path }}
           context: ${{ inputs.context }}
           build-args: ${{ steps.build-args-prep.outputs.build-args }}
-      - if: ${{ github.event_name != 'workflow_dispatch' && inputs.restart-workload != '' }}
+      - if: ${{ inputs.restart-pods || (github.event_name != 'workflow_dispatch' && inputs.restart-workload != '') }}
         uses: ./.github/actions/pod-restart/
         with:
           region: ${{ inputs.AWS_REGION }}

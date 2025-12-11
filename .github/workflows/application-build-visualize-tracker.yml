@@ -22,6 +22,20 @@ on:
       GITHUB_ENV:
         required: true
         type: string
+      restart-pods:
+        required: false
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      GITHUB_ENV:
+        required: true
+        type: string
+        description: 'Github Environment name (e.g., dev, stg, prod)'
+      restart-pods:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   determine-environment:
@@ -59,5 +73,6 @@ jobs:
       context: ./themis2-app-servicer/visualize-tracker
       clusters: themis2-${{ needs.get-env-vars.outputs.ENV }}-eks-cp-sol-prov themis2-${{ needs.get-env-vars.outputs.ENV }}-eks-cp-sol-prov2
       restart-workload: visualize-tracker
+      restart-pods: ${{ inputs.restart-pods }}
     secrets:
       NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_JAVASCRIPT_API_KEY }}

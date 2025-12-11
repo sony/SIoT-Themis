@@ -22,6 +22,20 @@ on:
       GITHUB_ENV:
         required: true
         type: string
+      restart-pods:
+        required: false
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      GITHUB_ENV:
+        required: true
+        type: string
+        description: 'Github Environment name (e.g., dev, stg, prod)'
+      restart-pods:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   determine-environment:
@@ -56,6 +70,7 @@ jobs:
       AWS_ECR_DOMAIN: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}.dkr.ecr.${{ needs.get-env-vars.outputs.AWS_REGION }}.amazonaws.com
       AWS_ACCOUNT: ${{ needs.get-env-vars.outputs.AWS_ACCOUNT }}
       MAPPINGS: ${{ needs.get-env-vars.outputs.MAPPINGS }}
+      restart-pods: ${{ inputs.restart-pods }}
       ecr-repository: option/eltres-agent
       dockerfile-path: ./themis2-app-option/eltres-agent/Dockerfile
       context: .

@@ -22,6 +22,12 @@ on:
       GITHUB_ENV:
         required: true
         type: string
+  workflow_dispatch:
+    inputs:
+      GITHUB_ENV:
+        required: true
+        type: string
+        description: 'Github Environment name (e.g., dev, stg, prod)'
 
 jobs:
   determine-environment:
