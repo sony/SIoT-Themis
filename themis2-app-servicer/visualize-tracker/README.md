@@ -124,3 +124,12 @@ docker run -p 5000:3000 --name visualize-tracker --network themis2-app-platform 
 -e REALTIME_NOTIFICATION_API_ORIGIN=http://kong:8000/realtime-notification-api \
 visualize-tracker
 ```
+
+## 表示するデータタイプの変更方法
+
+1. [tracker の Dockerfile](./Dockerfile) 内にある `NEXT_PUBLIC_DATA_TYPE` の値を修正する。
+
+2. Deploy VisualizeTracker ワークフローを実行する。
+   - 実行時のパラメータ
+     - Github Environment name：変更した MAPPINGS が紐づく GitHub Environment 名を指定する（例：dev / stg / prod）
+     - restart-pods：ON に設定する
