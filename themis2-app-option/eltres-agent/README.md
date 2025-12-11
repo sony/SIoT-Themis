@@ -221,3 +221,16 @@ curl --location 'http://localhost:6000/data/add' \
     "value": '1-169616666' 
 }'
 ```
+
+## 環境へのマッピング用JSON設定更新手順
+
+1. 前提条件
+   - 環境構築が終了していること
+
+2. GitHub Environmentに設定したMAPPINGSの変更を行う
+   - 参考：[Github Actions環境変数設定](../../README.md#github-actions環境変数設定)の「3. Github Environmentsを設定する」セクション内のVariables
+
+3. GitHub Actionsの「Deploy EltresAgent」ワークフローを手動実行する
+   - 実行時パラメータ
+     - Github Environment name：MAPPINGSを変更したGitHub Environmentの環境名を指定する（例：dev、stg、prod）
+     - restart-pods：ONにする
