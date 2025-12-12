@@ -385,10 +385,11 @@
 - 配置先：/opt　※パーミッションを777に設定
 
 3. コマンドインストールスクリプトを任意のディレクトリに配置し実行する
-
+- 対象スクリプト：themis2-inf-platform/externals/iac-ec2/init_script.sh  
 ※出力の最後に「All installations completed.」と表示されていること
 
 ```
+## 実行コマンド
 sh ./init_script.sh 
 ```
 
