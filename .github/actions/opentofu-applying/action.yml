@@ -32,3 +32,10 @@ runs:
       run: |
         tofu init -input=false -backend-config="bucket=${{ inputs.backend-bucket-name }}" -backend-config="region=${{ inputs.aws-region }}"
         tofu apply -input=false -auto-approve ${{ inputs.target }}
+    
+    - name: IoT Core Summary
+      if: ${{ inputs.module-name == 'IoTCore' }}
+      shell: bash
+      working-directory: ./${{ inputs.working-dir }}
+      run: |
+        echo "IoT Core証明書ID: $(tofu output aws_iot_certificate_id)" >> $GITHUB_STEP_SUMMARY

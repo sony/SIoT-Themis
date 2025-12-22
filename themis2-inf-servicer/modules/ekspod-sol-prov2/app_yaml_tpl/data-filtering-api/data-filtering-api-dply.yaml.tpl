@@ -43,7 +43,7 @@ spec:
                 name: ${sys_name}-${env}-data-filtering-api-secret
                 key: BACKEND_API_KEY
           - name: DATA_CONTROLLER_API_URL
-            value: "https://kong.${env}.unvs-themis.com/data-controller-api"
+            value: "https://kong.${env}.${domain}/data-controller-api"
           ports:
           - containerPort: 3000
             name: data-filt-port

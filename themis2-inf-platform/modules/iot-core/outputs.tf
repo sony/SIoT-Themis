@@ -33,3 +33,7 @@ output "public_key_pem" {
   value     = aws_iot_certificate.themis2_iot_certificates.public_key
   sensitive = true
 }
+
+output "certificate_id" {
+  value = aws_iot_certificate.themis2_iot_certificates.id
+}

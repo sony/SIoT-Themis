@@ -201,3 +201,8 @@ variable "realtime_notification_api_key" {
   type        = string
   description = "realtime notification API key"
 }
+
+variable "domain" {
+  type        = string
+  description = "Domain name for API endpoints"
+}

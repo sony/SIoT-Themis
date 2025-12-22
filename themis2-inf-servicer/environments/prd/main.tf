@@ -202,6 +202,7 @@ module "ekspod_sol_prov" {
   keycloak_setting_user_password          = var.keycloak_setting_user_password
   postgres_setting_ecr_url                = module.ecr.postgres_setting_url
   realtime_notification_api_key           = var.realtime_notification_api_key
+  domain                                  = var.route53_domain_name
 }
 
 # サービサー2 クラスター
@@ -247,6 +248,7 @@ module "ekspod_sol_prov2" {
   keycloak_setting_user_password          = var.keycloak_setting_user_password
   postgres_setting_ecr_url                = module.ecr.postgres_setting_url
   realtime_notification_api_key           = var.realtime_notification_api_key
+  domain                                  = var.route53_domain_name
 }
 
 module "cloudfront" {

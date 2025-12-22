@@ -107,7 +107,8 @@ resource "kubernetes_manifest" "sample_tracker_dply" {
     env             = var.env,
     sys_name        = var.sys_name,
     ns_sample_value = var.ns_sample_value,
-    aws_account_id  = var.aws_account_id
+    aws_account_id  = var.aws_account_id,
+    domain          = var.domain
   }))
 
   depends_on = [
@@ -306,7 +307,8 @@ resource "kubernetes_manifest" "batch_analyzer_dply" {
     sys_name                   = var.sys_name,
     ns_sample_value            = var.ns_sample_value,
     batch_analyzer_key_command = var.batch_analyzer_key_command,
-    aws_account_id             = var.aws_account_id
+    aws_account_id             = var.aws_account_id,
+    domain                     = var.domain
   }))
 
   depends_on = [
@@ -404,7 +406,8 @@ resource "kubernetes_manifest" "servicer_console_dply" {
     keycloak_endpoint_url         = "https://${var.alb_api_domains.keycloak2}",
     keycloak_realm                = var.sys_name,
     ecr_url                       = var.ecr_servicer_console_url,
-    realtime_notification_api_key = var.realtime_notification_api_key
+    realtime_notification_api_key = var.realtime_notification_api_key,
+    domain                        = var.domain
   }))
 
   depends_on = [
@@ -502,7 +505,8 @@ resource "kubernetes_manifest" "data_filtering_api_dply" {
     env             = var.env,
     sys_name        = var.sys_name,
     ns_sample_value = var.ns_sample_value,
-    ecr_url         = var.ecr_data_filtering_api_url
+    ecr_url         = var.ecr_data_filtering_api_url,
+    domain          = var.domain
   }))
 
   depends_on = [

@@ -62,7 +62,7 @@ spec:
         - name: PG_DATABASE
           value: ${sys_name}
         - name: REALTIME_NOTIFICATION_API_ENDPOINT
-          value: "https://kong.${env}.unvs-themis.com/realtime-notification-api"
+          value: "https://kong.${env}.${domain}/realtime-notification-api"
         - name: KEYCLOAK_ENDPOINT
           value: ${keycloak_endpoint_url}
         - name: KEYCLOAK_REALM

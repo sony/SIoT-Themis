@@ -28,7 +28,7 @@ spec:
         - name: NEXT_PROCESSING_FOLDER
           value: "saves"
         - name: DATA_CONTROLLER_API_ORIGIN
-          value: "https://kong.${env}.unvs-themis.com/data-controller-api"
+          value: "https://kong.${env}.${domain}/data-controller-api"
         - name: DATA_CONTROLLER_API_KEY
           valueFrom:
             secretKeyRef:
